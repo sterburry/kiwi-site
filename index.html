@@ -11,27 +11,21 @@
       display: flex;
       min-height: 100vh;
 
-      /* 🎨 animated background */
       background: radial-gradient(circle at 20% 20%, #1DB95433, transparent 40%),
                   radial-gradient(circle at 80% 30%, #ff00ff22, transparent 40%),
                   radial-gradient(circle at 50% 80%, #00ffff22, transparent 40%),
                   black;
 
       animation: bgMove 10s infinite alternate ease-in-out;
-      transition: background 0.5s ease;
     }
 
     @keyframes bgMove {
-      0% {
-        background-position: 0% 0%;
-      }
-      100% {
-        background-position: 100% 100%;
-      }
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
     }
 
-    /* 🌊 pulse layer */
-    body::before {
+    /* 🌊 pulse */
+    body.playing::before {
       content: "";
       position: fixed;
       top: 0;
@@ -39,14 +33,8 @@
       width: 100%;
       height: 100%;
       background: radial-gradient(circle, rgba(29,185,84,0.25), transparent 60%);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    body.playing::before {
-      opacity: 1;
       animation: pulse 1.2s infinite ease-in-out;
+      pointer-events: none;
     }
 
     @keyframes pulse {
@@ -55,22 +43,40 @@
       100% { transform: scale(1); opacity: 0.2; }
     }
 
-    /* SIDEBAR */
+    /* TOGGLE BUTTON */
+    #toggleBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #1DB954;
+      border: none;
+      padding: 10px 12px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      border-radius: 6px;
+    }
+
+    /* SIDEBAR (START CLOSED) */
     .sidebar {
       width: 200px;
       padding: 30px;
       border-right: 1px solid #222;
       text-align: left;
       position: fixed;
+      top: 0;
+      left: 0;
       height: 100%;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       backdrop-filter: blur(10px);
-      transform: translateX(0);
+
+      transform: translateX(-100%); /* ✅ START CLOSED */
       transition: transform 0.3s ease;
     }
 
-    .sidebar.hidden {
-      transform: translateX(-100%);
+    .sidebar.open {
+      transform: translateX(0);
     }
 
     .sidebar a {
@@ -85,12 +91,7 @@
       flex: 1;
       text-align: center;
       padding: 60px 20px;
-      margin-left: 220px;
-      transition: margin-left 0.3s ease;
-    }
-
-    .main.full {
-      margin-left: 0;
+      transition: transform 0.3s ease;
     }
 
     #spotify-widget {
@@ -102,20 +103,6 @@
       white-space: pre-wrap;
     }
 
-    /* TOGGLE */
-    #toggleBtn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      background: #1DB954;
-      border: none;
-      padding: 10px 12px;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 1000;
-      border-radius: 6px;
-    }
   </style>
 </head>
 
@@ -134,7 +121,7 @@
 </div>
 
 <!-- MAIN -->
-<div class="main" id="main">
+<div class="main">
 
   <h1>KIWI'S DIARY</h1>
 
@@ -151,12 +138,12 @@
 </div>
 
 <script>
-/* SIDEBAR */
+/* SIDEBAR TOGGLE */
 const sidebar = document.getElementById("sidebar");
-const main = document.getElementById("main");
-document.getElementById("toggleBtn").addEventListener("click", () => {
-  sidebar.classList.toggle("hidden");
-  main.classList.toggle("full");
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("open");
 });
 
 /* LYRICS */
@@ -185,13 +172,12 @@ async function loadNowPlaying() {
     const lyricsBox = document.getElementById("lyrics");
     const youtubeBox = document.getElementById("youtube-link");
 
-    /* 🎧 NOT PLAYING */
     if (!data.isPlaying) {
       document.body.classList.remove("playing");
 
       container.innerHTML = `
-        <h3>NOT LISTENING TO ANYTHING</h3>
-        <p>Kiwi is offline from Spotify</p>
+        <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
+        <p>Kiwi is currently offline from Spotify</p>
       `;
 
       lyricsBox.innerHTML = "";
@@ -199,7 +185,6 @@ async function loadNowPlaying() {
       return;
     }
 
-    /* 🎧 PLAYING → ACTIVATE PULSE */
     document.body.classList.add("playing");
 
     container.innerHTML = `
@@ -212,7 +197,6 @@ async function loadNowPlaying() {
       </div>
     `;
 
-    /* YOUTUBE */
     const youtubeURL =
       "https://www.youtube.com/results?search_query=" +
       encodeURIComponent(data.artist + " " + data.title);
@@ -221,7 +205,6 @@ async function loadNowPlaying() {
       <a href="${youtubeURL}" target="_blank">▶ Watch on YouTube</a>
     `;
 
-    /* LYRICS */
     lyricsBox.innerText = "Loading lyrics...";
     lyricsBox.innerText = await loadLyrics(data.artist, data.title);
 
