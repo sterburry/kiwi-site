@@ -11,35 +11,30 @@
       display: flex;
       min-height: 100vh;
 
-      background: radial-gradient(circle at 20% 20%, #1DB95433, transparent 40%),
-                  radial-gradient(circle at 80% 30%, #ff00ff22, transparent 40%),
-                  radial-gradient(circle at 50% 80%, #00ffff22, transparent 40%),
-                  black;
-
-      animation: bgMove 10s infinite alternate ease-in-out;
+      background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+      background-size: 400% 400%;
+      animation: pastelShift 18s ease infinite;
     }
 
-    @keyframes bgMove {
-      0% { background-position: 0% 0%; }
-      100% { background-position: 100% 100%; }
+    @keyframes pastelShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    /* 🌊 pulse */
+    /* 🌊 pulse when playing */
     body.playing::before {
       content: "";
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle, rgba(29,185,84,0.25), transparent 60%);
-      animation: pulse 1.2s infinite ease-in-out;
+      inset: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
+      animation: pulse 2s infinite ease-in-out;
       pointer-events: none;
     }
 
     @keyframes pulse {
       0% { transform: scale(1); opacity: 0.2; }
-      50% { transform: scale(1.2); opacity: 0.4; }
+      50% { transform: scale(1.1); opacity: 0.4; }
       100% { transform: scale(1); opacity: 0.2; }
     }
 
@@ -48,7 +43,7 @@
       position: fixed;
       top: 15px;
       left: 15px;
-      background: #1DB954;
+      background: #fff;
       border: none;
       padding: 10px 12px;
       color: black;
@@ -56,22 +51,25 @@
       cursor: pointer;
       z-index: 1000;
       border-radius: 6px;
+      transition: opacity 0.2s ease;
     }
 
-    /* SIDEBAR (START CLOSED) */
+    /* fade toggle when open */
+    #toggleBtn.open {
+      opacity: 0.5;
+    }
+
+    /* SIDEBAR */
     .sidebar {
       width: 200px;
       padding: 30px;
       border-right: 1px solid #222;
-      text-align: left;
       position: fixed;
-      top: 0;
-      left: 0;
       height: 100%;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(12px);
 
-      transform: translateX(-100%); /* ✅ START CLOSED */
+      transform: translateX(-100%);
       transition: transform 0.3s ease;
     }
 
@@ -79,11 +77,23 @@
       transform: translateX(0);
     }
 
+    /* push "Links" down so it doesn't clash */
+    .sidebar h3 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
     .sidebar a {
       display: block;
-      color: #1DB954;
+      color: white;
+      opacity: 0.85;
       margin: 10px 0;
       text-decoration: none;
+    }
+
+    .sidebar a:hover {
+      opacity: 1;
+      color: #1DB954;
     }
 
     /* MAIN */
@@ -91,16 +101,25 @@
       flex: 1;
       text-align: center;
       padding: 60px 20px;
-      transition: transform 0.3s ease;
     }
 
     #spotify-widget {
       margin-top: 30px;
     }
 
-    #lyrics, #liked-status, #youtube-link {
+    #lyrics {
       margin-top: 20px;
       white-space: pre-wrap;
+      transition: all 0.5s ease;
+    }
+
+    body.playing #lyrics {
+      text-shadow: 0 0 10px rgba(255,255,255,0.6);
+      transform: scale(1.01);
+    }
+
+    #youtube-link, #liked-status {
+      margin-top: 20px;
     }
 
   </style>
@@ -138,12 +157,13 @@
 </div>
 
 <script>
-/* SIDEBAR TOGGLE */
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggleBtn");
 
+/* toggle sidebar + button fade */
 toggleBtn.addEventListener("click", () => {
   sidebar.classList.toggle("open");
+  toggleBtn.classList.toggle("open");
 });
 
 /* LYRICS */
@@ -170,18 +190,16 @@ async function loadNowPlaying() {
 
     const container = document.getElementById("spotify-widget");
     const lyricsBox = document.getElementById("lyrics");
-    const youtubeBox = document.getElementById("youtube-link");
 
     if (!data.isPlaying) {
       document.body.classList.remove("playing");
 
       container.innerHTML = `
         <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
-        <p>Kiwi is currently offline from Spotify</p>
+        <p>THEY WATCH YOU</p>
       `;
 
       lyricsBox.innerHTML = "";
-      youtubeBox.innerHTML = "";
       return;
     }
 
@@ -195,14 +213,6 @@ async function loadNowPlaying() {
           <div>${data.artist}</div>
         </div>
       </div>
-    `;
-
-    const youtubeURL =
-      "https://www.youtube.com/results?search_query=" +
-      encodeURIComponent(data.artist + " " + data.title);
-
-    youtubeBox.innerHTML = `
-      <a href="${youtubeURL}" target="_blank">▶ Watch on YouTube</a>
     `;
 
     lyricsBox.innerText = "Loading lyrics...";
