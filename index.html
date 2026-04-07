@@ -6,26 +6,53 @@
   <style>
     body {
       margin: 0;
-      background-color: black;
       color: white;
       font-family: Arial;
       display: flex;
       min-height: 100vh;
+
+      /* 🎨 animated background */
+      background: radial-gradient(circle at 20% 20%, #1DB95433, transparent 40%),
+                  radial-gradient(circle at 80% 30%, #ff00ff22, transparent 40%),
+                  radial-gradient(circle at 50% 80%, #00ffff22, transparent 40%),
+                  black;
+
+      animation: bgMove 10s infinite alternate ease-in-out;
+      transition: background 0.5s ease;
     }
 
-    /* TOGGLE BUTTON */
-    #toggleBtn {
+    @keyframes bgMove {
+      0% {
+        background-position: 0% 0%;
+      }
+      100% {
+        background-position: 100% 100%;
+      }
+    }
+
+    /* 🌊 pulse layer */
+    body::before {
+      content: "";
       position: fixed;
-      top: 15px;
-      left: 15px;
-      background: #1DB954;
-      border: none;
-      padding: 10px 12px;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 1000;
-      border-radius: 6px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(29,185,84,0.25), transparent 60%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    body.playing::before {
+      opacity: 1;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.2; }
+      50% { transform: scale(1.2); opacity: 0.4; }
+      100% { transform: scale(1); opacity: 0.2; }
     }
 
     /* SIDEBAR */
@@ -35,10 +62,9 @@
       border-right: 1px solid #222;
       text-align: left;
       position: fixed;
-      top: 0;
-      left: 0;
       height: 100%;
-      background: black;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
       transform: translateX(0);
       transition: transform 0.3s ease;
     }
@@ -54,7 +80,7 @@
       text-decoration: none;
     }
 
-    /* MAIN CONTENT */
+    /* MAIN */
     .main {
       flex: 1;
       text-align: center;
@@ -76,12 +102,25 @@
       white-space: pre-wrap;
     }
 
+    /* TOGGLE */
+    #toggleBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #1DB954;
+      border: none;
+      padding: 10px 12px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      border-radius: 6px;
+    }
   </style>
 </head>
 
 <body>
 
-<!-- TOGGLE BUTTON -->
 <button id="toggleBtn">☰</button>
 
 <!-- SIDEBAR -->
@@ -112,17 +151,15 @@
 </div>
 
 <script>
-/* ---------------- SIDEBAR TOGGLE ---------------- */
+/* SIDEBAR */
 const sidebar = document.getElementById("sidebar");
 const main = document.getElementById("main");
-const toggleBtn = document.getElementById("toggleBtn");
-
-toggleBtn.addEventListener("click", () => {
+document.getElementById("toggleBtn").addEventListener("click", () => {
   sidebar.classList.toggle("hidden");
   main.classList.toggle("full");
 });
 
-/* ---------------- LYRICS API ---------------- */
+/* LYRICS */
 async function loadLyrics(artist, title) {
   try {
     const res = await fetch(
@@ -130,18 +167,15 @@ async function loadLyrics(artist, title) {
     );
 
     const data = await res.json();
-
-    if (!data.length) {
-      return "No lyrics found for this song.";
-    }
+    if (!data.length) return "No lyrics found.";
 
     return data[0].plainLyrics || "No lyrics available.";
-  } catch (err) {
+  } catch {
     return "Error loading lyrics.";
   }
 }
 
-/* ---------------- NOW PLAYING ---------------- */
+/* NOW PLAYING */
 async function loadNowPlaying() {
   try {
     const res = await fetch("/api/now-playing");
@@ -149,25 +183,25 @@ async function loadNowPlaying() {
 
     const container = document.getElementById("spotify-widget");
     const lyricsBox = document.getElementById("lyrics");
-    const likedBox = document.getElementById("liked-status");
     const youtubeBox = document.getElementById("youtube-link");
 
-    /* NOT PLAYING */
+    /* 🎧 NOT PLAYING */
     if (!data.isPlaying) {
+      document.body.classList.remove("playing");
+
       container.innerHTML = `
-        <div style="padding:20px;">
-          <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
-          <p>Kiwi is currently offline from Spotify</p>
-        </div>
+        <h3>NOT LISTENING TO ANYTHING</h3>
+        <p>Kiwi is offline from Spotify</p>
       `;
 
       lyricsBox.innerHTML = "";
-      likedBox.innerHTML = "";
       youtubeBox.innerHTML = "";
       return;
     }
 
-    /* NOW PLAYING */
+    /* 🎧 PLAYING → ACTIVATE PULSE */
+    document.body.classList.add("playing");
+
     container.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
         <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
@@ -189,11 +223,7 @@ async function loadNowPlaying() {
 
     /* LYRICS */
     lyricsBox.innerText = "Loading lyrics...";
-    const lyrics = await loadLyrics(data.artist, data.title);
-    lyricsBox.innerText = lyrics;
-
-    /* LIKED (placeholder) */
-    likedBox.innerHTML = "";
+    lyricsBox.innerText = await loadLyrics(data.artist, data.title);
 
   } catch (err) {
     document.getElementById("spotify-widget").innerHTML =
