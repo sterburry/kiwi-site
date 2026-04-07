@@ -26,42 +26,23 @@
 
 <body>
 
-  <h1>KIWIS DIARY</h1>
+  <h1>My Site</h1>
 
-  <!-- SOCIAL LINKS (add yours here) -->
-  <a href="https://www.instagram.com/kevvv.78/">Instagram</a>
-  <a href="https://x.com/PrivateIWIK">Twitter</a>
-
-  <!-- SPOTIFY WIDGET -->
+  <!-- 🎧 SPOTIFY SECTION -->
   <div id="spotify-widget">Loading music...</div>
 
-  <script>
-  async function loadNowPlaying() {
-    const res = await fetch("/api/now-playing");
-    const data = await res.json();
+  <!-- 💚 Liked status -->
+  <div id="liked-status"></div>
 
-    const container = document.getElementById("spotify-widget");
+  <!-- ▶ YouTube -->
+  <h3>YouTube</h3>
+  <div id="youtube-link"></div>
 
-    if (!data.isPlaying) {
-      container.innerHTML = "🎧 Not playing anything right now";
-      return;
-    }
-
-    container.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
-        <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
-        <div>
-          <div><b>${data.title}</b></div>
-          <div>${data.artist}</div>
-          <a href="${data.songUrl}" target="_blank">Open in Spotify</a>
-        </div>
-      </div>
-    `;
-  }
-
-  loadNowPlaying();
-  setInterval(loadNowPlaying, 10000);
-  </script>
+  <!-- 📝 LYRICS -->
+  <h3>Lyrics</h3>
+  <div id="lyrics" style="white-space:pre-wrap; padding:10px;">
+    Loading lyrics...
+  </div>
 
 </body>
 </html>
