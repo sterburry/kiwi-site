@@ -195,6 +195,34 @@ toggleBtn.addEventListener("click", () => {
   toggleBtn.classList.toggle("open");
 });
 
+/* 🎨 GENRE COLOR SYSTEM */
+function getGenreColors(genres) {
+  const g = (genres || []).join(" ").toLowerCase();
+
+  if (g.includes("rap") || g.includes("trap") || g.includes("hip hop")) {
+    return ["#0f0f1a", "#1a1a2e", "#16213e", "#533483"];
+  }
+
+  if (g.includes("rock") || g.includes("metal")) {
+    return ["#2b0000", "#660000", "#990000", "#ff1a1a"];
+  }
+
+  if (g.includes("pop")) {
+    return ["#ffd6e0", "#ffc2d1", "#ffe5ec", "#fff0f3"];
+  }
+
+  if (g.includes("indie") || g.includes("alternative")) {
+    return ["#2c3e50", "#4ca1af", "#6dd5ed", "#cfd9df"];
+  }
+
+  if (g.includes("edm") || g.includes("dance") || g.includes("electronic")) {
+    return ["#00c6ff", "#0072ff", "#00f260", "#0575e6"];
+  }
+
+  // fallback (pastel)
+  return ["#a1c4fd", "#c2e9fb", "#fbc2eb", "#a6c1ee"];
+}
+
 /* LYRICS */
 async function loadLyrics(artist, title) {
   try {
@@ -233,6 +261,20 @@ async function loadNowPlaying() {
     }
 
     document.body.classList.add("playing");
+
+    /* 🎨 APPLY GENRE COLORS */
+    const colors = getGenreColors(data.genres);
+
+    document.body.style.background = `
+      linear-gradient(120deg,
+        ${colors[0]},
+        ${colors[1]},
+        ${colors[2]},
+        ${colors[3]}
+      )
+    `;
+    document.body.style.backgroundSize = "400% 400%";
+    document.body.style.animation = "pastelFade 20s ease infinite";
 
     container.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
