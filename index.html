@@ -13,12 +13,38 @@
       min-height: 100vh;
     }
 
-    /* LEFT SIDEBAR */
+    /* TOGGLE BUTTON */
+    #toggleBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #1DB954;
+      border: none;
+      padding: 10px 12px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      border-radius: 6px;
+    }
+
+    /* SIDEBAR */
     .sidebar {
       width: 200px;
       padding: 30px;
       border-right: 1px solid #222;
       text-align: left;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: black;
+      transform: translateX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
     }
 
     .sidebar a {
@@ -33,6 +59,12 @@
       flex: 1;
       text-align: center;
       padding: 60px 20px;
+      margin-left: 220px;
+      transition: margin-left 0.3s ease;
+    }
+
+    .main.full {
+      margin-left: 0;
     }
 
     #spotify-widget {
@@ -41,6 +73,7 @@
 
     #lyrics, #liked-status, #youtube-link {
       margin-top: 20px;
+      white-space: pre-wrap;
     }
 
   </style>
@@ -48,40 +81,67 @@
 
 <body>
 
-  <!-- 🔵 SIDEBAR (SOCIAL LINKS) -->
-  <div class="sidebar">
-    <h3>Links</h3>
+<!-- TOGGLE BUTTON -->
+<button id="toggleBtn">☰</button>
 
-    <a href="https://instagram.com/kevvv.78/" target="_blank">Instagram</a>
-    <a href="https://x.com/PrivateIWIK" target="_blank">Twitter</a>
-    <a href="https://github.com/sterburry" target="_blank">GitHub</a>
-    <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank">Spotify</a>
-  </div>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <h3>Links</h3>
 
-  <!-- 🟢 MAIN CONTENT -->
-  <div class="main">
+  <a href="https://instagram.com/kevvv.78/" target="_blank">Instagram</a>
+  <a href="https://x.com/PrivateIWIK" target="_blank">Twitter</a>
+  <a href="https://github.com/sterburry" target="_blank">GitHub</a>
+  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank">Spotify</a>
+</div>
 
-    <h1>KIWI'S DIARY</h1>
+<!-- MAIN -->
+<div class="main" id="main">
 
-    <!-- 🎧 SPOTIFY -->
-    <div id="spotify-widget">Loading music...</div>
+  <h1>KIWI'S DIARY</h1>
 
-    <!-- 💚 Liked -->
-    <div id="liked-status"></div>
+  <div id="spotify-widget">Loading music...</div>
 
-    <!-- ▶ YouTube -->
-    <h3>YouTube</h3>
-    <div id="youtube-link"></div>
+  <div id="liked-status"></div>
 
-    <!-- 📝 Lyrics -->
-    <h3>Lyrics</h3>
-    <div id="lyrics" style="white-space:pre-wrap;">
-      Loading lyrics...
-    </div>
+  <h3>YouTube</h3>
+  <div id="youtube-link"></div>
 
-  </div>
+  <h3>Lyrics</h3>
+  <div id="lyrics">Loading lyrics...</div>
+
+</div>
 
 <script>
+/* ---------------- SIDEBAR TOGGLE ---------------- */
+const sidebar = document.getElementById("sidebar");
+const main = document.getElementById("main");
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("hidden");
+  main.classList.toggle("full");
+});
+
+/* ---------------- LYRICS API ---------------- */
+async function loadLyrics(artist, title) {
+  try {
+    const res = await fetch(
+      `https://lrclib.net/api/search?q=${encodeURIComponent(artist + " " + title)}`
+    );
+
+    const data = await res.json();
+
+    if (!data.length) {
+      return "No lyrics found for this song.";
+    }
+
+    return data[0].plainLyrics || "No lyrics available.";
+  } catch (err) {
+    return "Error loading lyrics.";
+  }
+}
+
+/* ---------------- NOW PLAYING ---------------- */
 async function loadNowPlaying() {
   try {
     const res = await fetch("/api/now-playing");
@@ -92,7 +152,7 @@ async function loadNowPlaying() {
     const likedBox = document.getElementById("liked-status");
     const youtubeBox = document.getElementById("youtube-link");
 
-    // 🎧 NOT PLAYING
+    /* NOT PLAYING */
     if (!data.isPlaying) {
       container.innerHTML = `
         <div style="padding:20px;">
@@ -107,7 +167,7 @@ async function loadNowPlaying() {
       return;
     }
 
-    // 🎧 NOW PLAYING
+    /* NOW PLAYING */
     container.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
         <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
@@ -118,7 +178,7 @@ async function loadNowPlaying() {
       </div>
     `;
 
-    // ▶ YouTube
+    /* YOUTUBE */
     const youtubeURL =
       "https://www.youtube.com/results?search_query=" +
       encodeURIComponent(data.artist + " " + data.title);
@@ -127,10 +187,12 @@ async function loadNowPlaying() {
       <a href="${youtubeURL}" target="_blank">▶ Watch on YouTube</a>
     `;
 
-    // 📝 Lyrics placeholder
+    /* LYRICS */
     lyricsBox.innerText = "Loading lyrics...";
+    const lyrics = await loadLyrics(data.artist, data.title);
+    lyricsBox.innerText = lyrics;
 
-    // 💚 Liked placeholder
+    /* LIKED (placeholder) */
     likedBox.innerHTML = "";
 
   } catch (err) {
