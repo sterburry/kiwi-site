@@ -10,53 +10,83 @@
       font-family: Arial;
       display: flex;
       min-height: 100vh;
-
-      transition: background 1.5s ease;
+      overflow-x: hidden;
+      transition: background 1s ease;
     }
 
-    /* 🌙 DARK MODE (default / not listening) */
+    /* 🌙 DARK MODE (not playing) */
     body:not(.playing) {
-      background: linear-gradient(120deg, #0f0f1a, #1a1a2e, #111);
+      background: linear-gradient(120deg, #0b0b14, #141427, #0f0f1a);
       background-size: 400% 400%;
-      animation: darkShift 20s ease infinite;
+      animation: darkFlow 20s ease infinite;
     }
 
-    @keyframes darkShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
+    @keyframes darkFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* 🌸 PASTEL MODE (when playing) */
-    body.playing {
-      background: linear-gradient(120deg, #a1c4fd, #c2e9fb, #fbc2eb, #a6c1ee);
-      background-size: 400% 400%;
-      animation: pastelShift 18s ease infinite;
-    }
-
-    @keyframes pastelShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* 🌊 pulse when playing */
+    /* 🌈 LIQUID COLOR BACKGROUND (playing) */
     body.playing::before {
       content: "";
       position: fixed;
-      inset: 0;
-      background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
-      animation: pulse 2.5s infinite ease-in-out;
-      pointer-events: none;
+      inset: -50%;
+      z-index: -1;
+
+      background: conic-gradient(
+        from 0deg,
+        #ffadad,
+        #ffd6a5,
+        #fdffb6,
+        #caffbf,
+        #9bf6ff,
+        #a0c4ff,
+        #bdb2ff,
+        #ffc6ff,
+        #ffadad
+      );
+
+      filter: blur(90px) saturate(1.4);
+      animation: spin 18s linear infinite;
+      opacity: 0.95;
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.15; }
-      50% { transform: scale(1.15); opacity: 0.35; }
-      100% { transform: scale(1); opacity: 0.15; }
+    body.playing::after {
+      content: "";
+      position: fixed;
+      inset: -60%;
+      z-index: -2;
+
+      background: conic-gradient(
+        from 180deg,
+        #ff9a9e,
+        #fad0c4,
+        #fbc2eb,
+        #a18cd1,
+        #84fab0,
+        #8fd3f4,
+        #a6c1ee,
+        #fbc2eb,
+        #ff9a9e
+      );
+
+      filter: blur(130px) saturate(1.6);
+      animation: spinReverse 28s linear infinite;
+      opacity: 0.75;
     }
 
-    /* TOGGLE BUTTON */
+    @keyframes spin {
+      from { transform: rotate(0deg) scale(1.2); }
+      to   { transform: rotate(360deg) scale(1.2); }
+    }
+
+    @keyframes spinReverse {
+      from { transform: rotate(360deg) scale(1.4); }
+      to   { transform: rotate(0deg) scale(1.4); }
+    }
+
+    /* ☰ BUTTON */
     #toggleBtn {
       position: fixed;
       top: 15px;
@@ -137,7 +167,6 @@
     #youtube-link, #liked-status {
       margin-top: 20px;
     }
-
   </style>
 </head>
 
@@ -211,7 +240,7 @@ async function loadNowPlaying() {
 
       container.innerHTML = `
         <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
-        <p>THEY WATCH YOU</p>
+        <p>THEY WATCH YOU. ALWAYS</p>
       `;
 
       lyricsBox.innerHTML = "";
