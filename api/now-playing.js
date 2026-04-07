@@ -34,12 +34,24 @@ export default async function handler(req, res) {
   }
 
   const song = await nowPlaying.json();
+// 🎧 GET ARTIST ID
+const artistId = songData.item.artists[0].id;
 
-  res.status(200).json({
-    isPlaying: song.is_playing,
-    title: song.item.name,
-    artist: song.item.artists.map(a => a.name).join(", "),
-    albumImage: song.item.album.images[0].url,
-    songUrl: song.item.external_urls.spotify
-  });
+// 🎧 FETCH ARTIST DATA (THIS CONTAINS GENRES)
+const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+  },
+});
+
+const artistData = await artistRes.json();
+const genres = artistData.genres || [];
+ return res.status(200).json({
+  title: songData.item.name,
+  artist: songData.item.artists.map(a => a.name).join(", "),
+  albumImage: songData.item.album.images[0].url,
+  songUrl: songData.item.external_urls.spotify,
+  isPlaying: true,
+  genres: genres
+});
 }
