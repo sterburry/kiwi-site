@@ -37,15 +37,39 @@ setInterval(getNowPlaying, 10000);
 </script>
 <body>
 
-  <h1>kiwi 🥝</h1>
+  <!-- your existing website content -->
+  <h1>My Site</h1>
 
-  <p id="song">🎧 Loading...</p>
+  <!-- PASTE THIS HERE 👇 -->
+  <div id="spotify-widget">Loading music...</div>
 
-  <div>
-    <a href="#">Instagram</a>
-    <a href="#">YouTube</a>
-    <a href="#">My Projects</a>
-  </div>
+  <script>
+  async function loadNowPlaying() {
+    const res = await fetch("/api/now-playing");
+    const data = await res.json();
+
+    const container = document.getElementById("spotify-widget");
+
+    if (!data.isPlaying) {
+      container.innerHTML = "🎧 Not playing anything right now";
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
+        <div>
+          <div><b>${data.title}</b></div>
+          <div>${data.artist}</div>
+          <a href="${data.songUrl}" target="_blank">Open in Spotify</a>
+        </div>
+      </div>
+    `;
+  }
+
+  loadNowPlaying();
+  setInterval(loadNowPlaying, 10000);
+  </script>
 
 </body>
 </html>
