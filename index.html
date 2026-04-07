@@ -10,37 +10,29 @@
       text-align: center;
       padding-top: 100px;
     }
+
     a {
       color: #1DB954;
       display: block;
       margin: 10px;
       text-decoration: none;
     }
+
+    #spotify-widget {
+      margin-top: 30px;
+    }
   </style>
 </head>
-<script>
-async function getNowPlaying() {
-  const response = await fetch("https://your-backend-url.com/now-playing");
-  const data = await response.json();
 
-  const songElement = document.getElementById("song");
-
-  if (data.isPlaying) {
-    songElement.innerText = `🎧 ${data.artist} – ${data.song}`;
-  } else {
-    songElement.innerText = "Nothing playing right now";
-  }
-}
-
-getNowPlaying();
-setInterval(getNowPlaying, 10000);
-</script>
 <body>
 
-  <!-- your existing website content -->
   <h1>My Site</h1>
 
-  <!-- PASTE THIS HERE 👇 -->
+  <!-- SOCIAL LINKS (add yours here) -->
+  <a href="https://instagram.com">Instagram</a>
+  <a href="https://twitter.com">Twitter</a>
+
+  <!-- SPOTIFY WIDGET -->
   <div id="spotify-widget">Loading music...</div>
 
   <script>
@@ -56,7 +48,7 @@ setInterval(getNowPlaying, 10000);
     }
 
     container.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
         <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
         <div>
           <div><b>${data.title}</b></div>
