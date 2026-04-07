@@ -11,7 +11,25 @@
       display: flex;
       min-height: 100vh;
 
-      background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+      transition: background 1.5s ease;
+    }
+
+    /* 🌙 DARK MODE (default / not listening) */
+    body:not(.playing) {
+      background: linear-gradient(120deg, #0f0f1a, #1a1a2e, #111);
+      background-size: 400% 400%;
+      animation: darkShift 20s ease infinite;
+    }
+
+    @keyframes darkShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 🌸 PASTEL MODE (when playing) */
+    body.playing {
+      background: linear-gradient(120deg, #a1c4fd, #c2e9fb, #fbc2eb, #a6c1ee);
       background-size: 400% 400%;
       animation: pastelShift 18s ease infinite;
     }
@@ -28,14 +46,14 @@
       position: fixed;
       inset: 0;
       background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
-      animation: pulse 2s infinite ease-in-out;
+      animation: pulse 2.5s infinite ease-in-out;
       pointer-events: none;
     }
 
     @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.2; }
-      50% { transform: scale(1.1); opacity: 0.4; }
-      100% { transform: scale(1); opacity: 0.2; }
+      0% { transform: scale(1); opacity: 0.15; }
+      50% { transform: scale(1.15); opacity: 0.35; }
+      100% { transform: scale(1); opacity: 0.15; }
     }
 
     /* TOGGLE BUTTON */
@@ -54,7 +72,6 @@
       transition: opacity 0.2s ease;
     }
 
-    /* fade toggle when open */
     #toggleBtn.open {
       opacity: 0.5;
     }
@@ -77,7 +94,6 @@
       transform: translateX(0);
     }
 
-    /* push "Links" down so it doesn't clash */
     .sidebar h3 {
       margin-top: 40px;
       margin-bottom: 20px;
@@ -110,7 +126,7 @@
     #lyrics {
       margin-top: 20px;
       white-space: pre-wrap;
-      transition: all 0.5s ease;
+      transition: all 0.6s ease;
     }
 
     body.playing #lyrics {
@@ -160,7 +176,6 @@
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggleBtn");
 
-/* toggle sidebar + button fade */
 toggleBtn.addEventListener("click", () => {
   sidebar.classList.toggle("open");
   toggleBtn.classList.toggle("open");
