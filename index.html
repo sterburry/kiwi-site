@@ -2,47 +2,146 @@
 <html>
 <head>
   <title>KIWIS DIARY</title>
+
   <style>
     body {
+      margin: 0;
       background-color: black;
       color: white;
       font-family: Arial;
-      text-align: center;
-      padding-top: 100px;
+      display: flex;
+      min-height: 100vh;
     }
 
-    a {
-      color: #1DB954;
+    /* LEFT SIDEBAR */
+    .sidebar {
+      width: 200px;
+      padding: 30px;
+      border-right: 1px solid #222;
+      text-align: left;
+    }
+
+    .sidebar a {
       display: block;
-      margin: 10px;
+      color: #1DB954;
+      margin: 10px 0;
       text-decoration: none;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      flex: 1;
+      text-align: center;
+      padding: 60px 20px;
     }
 
     #spotify-widget {
       margin-top: 30px;
     }
+
+    #lyrics, #liked-status, #youtube-link {
+      margin-top: 20px;
+    }
+
   </style>
 </head>
 
 <body>
 
-  <h1>My Site</h1>
+  <!-- 🔵 SIDEBAR (SOCIAL LINKS) -->
+  <div class="sidebar">
+    <h3>Links</h3>
 
-  <!-- 🎧 SPOTIFY SECTION -->
-  <div id="spotify-widget">Loading music...</div>
-
-  <!-- 💚 Liked status -->
-  <div id="liked-status"></div>
-
-  <!-- ▶ YouTube -->
-  <h3>YouTube</h3>
-  <div id="youtube-link"></div>
-
-  <!-- 📝 LYRICS -->
-  <h3>Lyrics</h3>
-  <div id="lyrics" style="white-space:pre-wrap; padding:10px;">
-    Loading lyrics...
+    <a href="https://instagram.com/kevvv.78/" target="_blank">Instagram</a>
+    <a href="https://x.com/PrivateIWIK" target="_blank">Twitter</a>
+    <a href="https://github.com/sterburry" target="_blank">GitHub</a>
+    <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank">Spotify</a>
   </div>
+
+  <!-- 🟢 MAIN CONTENT -->
+  <div class="main">
+
+    <h1>KIWI'S DIARY</h1>
+
+    <!-- 🎧 SPOTIFY -->
+    <div id="spotify-widget">Loading music...</div>
+
+    <!-- 💚 Liked -->
+    <div id="liked-status"></div>
+
+    <!-- ▶ YouTube -->
+    <h3>YouTube</h3>
+    <div id="youtube-link"></div>
+
+    <!-- 📝 Lyrics -->
+    <h3>Lyrics</h3>
+    <div id="lyrics" style="white-space:pre-wrap;">
+      Loading lyrics...
+    </div>
+
+  </div>
+
+<script>
+async function loadNowPlaying() {
+  try {
+    const res = await fetch("/api/now-playing");
+    const data = await res.json();
+
+    const container = document.getElementById("spotify-widget");
+    const lyricsBox = document.getElementById("lyrics");
+    const likedBox = document.getElementById("liked-status");
+    const youtubeBox = document.getElementById("youtube-link");
+
+    // 🎧 NOT PLAYING
+    if (!data.isPlaying) {
+      container.innerHTML = `
+        <div style="padding:20px;">
+          <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
+          <p>Kiwi is currently offline from Spotify</p>
+        </div>
+      `;
+
+      lyricsBox.innerHTML = "";
+      likedBox.innerHTML = "";
+      youtubeBox.innerHTML = "";
+      return;
+    }
+
+    // 🎧 NOW PLAYING
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
+        <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
+        <div>
+          <div><b>${data.title}</b></div>
+          <div>${data.artist}</div>
+        </div>
+      </div>
+    `;
+
+    // ▶ YouTube
+    const youtubeURL =
+      "https://www.youtube.com/results?search_query=" +
+      encodeURIComponent(data.artist + " " + data.title);
+
+    youtubeBox.innerHTML = `
+      <a href="${youtubeURL}" target="_blank">▶ Watch on YouTube</a>
+    `;
+
+    // 📝 Lyrics placeholder
+    lyricsBox.innerText = "Loading lyrics...";
+
+    // 💚 Liked placeholder
+    likedBox.innerHTML = "";
+
+  } catch (err) {
+    document.getElementById("spotify-widget").innerHTML =
+      "⚠️ Error loading Spotify data";
+  }
+}
+
+loadNowPlaying();
+setInterval(loadNowPlaying, 15000);
+</script>
 
 </body>
 </html>
