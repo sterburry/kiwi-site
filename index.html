@@ -113,6 +113,106 @@
       margin-top: 2px;
     }
 
+    /* 🎨 PAGE LAYOUT */
+    .page-wrap {
+      display: flex;
+      flex: 1;
+      gap: 16px;
+      padding: 20px;
+      align-items: flex-start;
+    }
+
+    /* 📋 MY POSSESSIONS PANEL */
+    #possessions-panel {
+      display: none;
+      width: 220px;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 20px 14px;
+      max-height: calc(100vh - 40px);
+      position: sticky;
+      top: 20px;
+    }
+
+    #possessions-panel h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.4;
+      text-align: center;
+      margin: 0 0 14px;
+    }
+
+    #possession-tracks {
+      overflow-y: auto;
+      max-height: calc(100vh - 140px);
+    }
+
+    #possession-tracks::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    #possession-tracks::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+    }
+
+    .possession-track {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+      position: relative;
+    }
+
+    .possession-track:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .possession-track.confirm-remove {
+      border-color: #ff4444;
+      background: rgba(255,68,68,0.1);
+    }
+
+    .possession-track img {
+      width: 36px;
+      height: 36px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+
+    .possession-track .p-title {
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .possession-track .remove-hint {
+      font-size: 9px;
+      opacity: 0.4;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .possession-track .confirm-text {
+      font-size: 10px;
+      color: #ff4444;
+      text-align: center;
+      width: 100%;
+    }
+
     .main {
       flex: 1;
       text-align: center;
@@ -120,13 +220,8 @@
       background: rgba(0,0,0,0.45);
       backdrop-filter: blur(12px);
       border-radius: 20px;
-      margin: 20px;
       z-index: 0;
-    }
-
-    /* 🎵 NOW PLAYING */
-    #spotify-widget {
-      margin-bottom: 20px;
+      min-width: 0;
     }
 
     #spotify-widget img {
@@ -150,7 +245,6 @@
       margin-bottom: 12px;
     }
 
-    /* 🎵 PROGRESS BAR */
     .progress-container {
       margin: 12px auto 0;
       width: 100%;
@@ -180,7 +274,6 @@
       transition: width 1s linear;
     }
 
-    /* 🎛 ACTIONS */
     #actions {
       margin: 20px 0;
     }
@@ -209,7 +302,19 @@
       opacity: 0.7;
     }
 
-    /* 📐 TWO COLUMN LAYOUT */
+    /* ✅ SUCCESS ANIMATION */
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-pop {
+      display: inline-block;
+      animation: popIn 0.4s ease forwards;
+    }
+
+    /* 📐 BOTTOM GRID */
     .bottom-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -237,14 +342,15 @@
       border-radius: 12px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.08);
-      text-decoration: none;
       color: white;
       transition: background 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      position: relative;
     }
 
     .recent-track:hover {
       background: rgba(255,255,255,0.1);
-      border-color: #1DB954;
+      border-color: rgba(255,255,255,0.2);
     }
 
     .recent-track img {
@@ -282,6 +388,51 @@
       flex-shrink: 0;
     }
 
+    /* 🎯 RECENT TRACK OVERLAY */
+    .track-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .recent-track.show-overlay .track-overlay {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .track-overlay button {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .track-overlay .btn-spotify {
+      background: #1DB954;
+      color: white;
+    }
+
+    .track-overlay .btn-yt {
+      background: #FF0000;
+      color: white;
+    }
+
+    .track-overlay .btn-status {
+      font-size: 11px;
+      color: white;
+      opacity: 0.8;
+    }
+
     /* 🎤 LYRICS */
     #lyrics {
       padding: 14px;
@@ -305,18 +456,27 @@
     }
 
     /* 📱 MOBILE */
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
+      .page-wrap {
+        flex-direction: column;
+        padding: 10px;
+      }
+
+      #possessions-panel {
+        width: 100%;
+        position: static;
+        max-height: 300px;
+      }
+
       .bottom-grid {
         grid-template-columns: 1fr;
       }
 
       .main {
-        margin: 10px;
         padding: 50px 14px 30px;
       }
     }
 
-    /* 🎨 ALBUM COLOR CANVAS (hidden) */
     #colorCanvas {
       display: none;
     }
@@ -331,19 +491,19 @@
 <div class="sidebar" id="sidebar">
   <h3>Links</h3>
 
-  <a href="https://www.instagram.com/kevvv.78/" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
+  <a href="YOUR_INSTAGRAM_URL" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
     <div class="icon">📸</div>
     <div>
       <div class="label">Instagram</div>
-      <div class="sublabel">@kevvv.78</div>
+      <div class="sublabel">@yourusername</div>
     </div>
   </a>
 
-  <a href="https://x.com/PrivateIWIK" target="_blank" class="nav-card" style="--platform-color: #ffffff;">
+  <a href="YOUR_TWITTER_URL" target="_blank" class="nav-card" style="--platform-color: #ffffff;">
     <div class="icon">𝕏</div>
     <div>
       <div class="label">Twitter</div>
-      <div class="sublabel">@privateiwik</div>
+      <div class="sublabel">@yourusername</div>
     </div>
   </a>
 
@@ -363,7 +523,7 @@
     </div>
   </a>
 
-  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhi" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
+  <a href="YOUR_SPOTIFY_URL" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
     <div class="icon">🎵</div>
     <div>
       <div class="label">Spotify</div>
@@ -373,22 +533,32 @@
 
 </div>
 
-<div class="main">
-  <h1>KIWI'S DIARY</h1>
+<div class="page-wrap">
 
-  <div id="spotify-widget">Loading music...</div>
-  <div id="actions"></div>
+  <!-- MY POSSESSIONS PANEL -->
+  <div id="possessions-panel">
+    <h3>My Possessions</h3>
+    <div id="possession-tracks">Loading...</div>
+  </div>
 
-  <div class="bottom-grid">
-    <div>
-      <div class="section-title">Recently Played</div>
-      <div id="recent-tracks">Loading...</div>
-    </div>
-    <div>
-      <div class="section-title">Lyrics</div>
-      <div id="lyrics">Loading lyrics...</div>
+  <div class="main">
+    <h1>KIWI'S DIARY</h1>
+
+    <div id="spotify-widget">Loading music...</div>
+    <div id="actions"></div>
+
+    <div class="bottom-grid">
+      <div>
+        <div class="section-title">Recently Played</div>
+        <div id="recent-tracks">Loading...</div>
+      </div>
+      <div>
+        <div class="section-title">Lyrics</div>
+        <div id="lyrics">Loading lyrics...</div>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -429,27 +599,17 @@ function extractColor(imageUrl, callback) {
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
-
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     let r = 0, g = 0, b = 0, count = 0;
-
     for (let i = 0; i < data.length; i += 40) {
       r += data[i];
       g += data[i + 1];
       b += data[i + 2];
       count++;
     }
-
-    r = Math.floor(r / count);
-    g = Math.floor(g / count);
-    b = Math.floor(b / count);
-
-    // Darken the color so it works as a background
-    const darken = 0.4;
-    r = Math.floor(r * darken);
-    g = Math.floor(g * darken);
-    b = Math.floor(b * darken);
-
+    r = Math.floor((r / count) * 0.4);
+    g = Math.floor((g / count) * 0.4);
+    b = Math.floor((b / count) * 0.4);
     callback(r, g, b);
   };
   img.onerror = () => callback(15, 15, 30);
@@ -467,6 +627,27 @@ async function loadLyrics(artist, title) {
   }
 }
 
+/* 📋 ADD TO YT PLAYLIST (shared function) */
+async function addToYouTube(title, artist, statusEl) {
+  statusEl.innerHTML = `<span>⏳ Adding...</span>`;
+  try {
+    const res = await fetch(
+      `/api/youtube-add?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`
+    );
+    const result = await res.json();
+    if (result.status === "added") {
+      statusEl.innerHTML = `<span class="success-pop">✅ Added!</span>`;
+      loadPossessions();
+    } else if (result.status === "duplicate") {
+      statusEl.innerHTML = `<span>⚠️ Already in playlist</span>`;
+    } else {
+      statusEl.innerHTML = `<span>❌ ${result.step || result.message || "Error"}</span>`;
+    }
+  } catch {
+    statusEl.innerHTML = `<span>❌ Failed</span>`;
+  }
+}
+
 /* 🕓 RECENTLY PLAYED */
 async function loadRecentlyPlayed() {
   try {
@@ -479,20 +660,129 @@ async function loadRecentlyPlayed() {
       return;
     }
 
-    container.innerHTML = data.tracks.map(track => `
-      <a href="${track.songUrl}" target="_blank" class="recent-track">
+    container.innerHTML = data.tracks.map((track, i) => `
+      <div class="recent-track" id="recent-${i}">
         <img src="${track.albumImage}" alt="${track.title}">
         <div class="track-info">
           <div class="track-title">${track.title}</div>
           <div class="track-artist">${track.artist}</div>
         </div>
         <div class="track-time">${formatPlayedAt(track.playedAt)}</div>
-      </a>
+        <div class="track-overlay">
+          <button class="btn-spotify" onclick="window.open('${track.songUrl}', '_blank'); event.stopPropagation();">Spotify</button>
+          <button class="btn-yt" id="yt-btn-${i}" onclick="handleRecentYT(${i}, '${encodeURIComponent(track.title)}', '${encodeURIComponent(track.artist)}'); event.stopPropagation();">Add to Playlist</button>
+        </div>
+      </div>
     `).join("");
+
+    // Click to toggle overlay
+    data.tracks.forEach((_, i) => {
+      const el = document.getElementById(`recent-${i}`);
+      el.addEventListener("click", () => {
+        const isOpen = el.classList.contains("show-overlay");
+        document.querySelectorAll(".recent-track").forEach(t => t.classList.remove("show-overlay"));
+        if (!isOpen) el.classList.add("show-overlay");
+      });
+    });
 
   } catch {
     document.getElementById("recent-tracks").innerHTML = "<p style='opacity:0.5;text-align:center;font-size:13px;'>Error loading.</p>";
   }
+}
+
+async function handleRecentYT(i, encodedTitle, encodedArtist) {
+  const title = decodeURIComponent(encodedTitle);
+  const artist = decodeURIComponent(encodedArtist);
+  const btn = document.getElementById(`yt-btn-${i}`);
+  btn.disabled = true;
+  btn.innerText = "⏳";
+
+  try {
+    const res = await fetch(
+      `/api/youtube-add?title=${encodedTitle}&artist=${encodedArtist}`
+    );
+    const result = await res.json();
+    if (result.status === "added") {
+      btn.innerText = "✅";
+      btn.style.background = "#1DB954";
+      loadPossessions();
+    } else if (result.status === "duplicate") {
+      btn.innerText = "⚠️ Already in";
+    } else {
+      btn.innerText = "❌ Error";
+    }
+  } catch {
+    btn.innerText = "❌";
+  }
+}
+
+/* 📋 MY POSSESSIONS */
+async function loadPossessions() {
+  try {
+    const res = await fetch("/api/youtube-playlist");
+    const data = await res.json();
+
+    if (data.error === "Not connected") {
+      document.getElementById("possessions-panel").style.display = "none";
+      return;
+    }
+
+    document.getElementById("possessions-panel").style.display = "block";
+
+    const container = document.getElementById("possession-tracks");
+
+    if (!data.tracks || !data.tracks.length) {
+      container.innerHTML = "<p style='opacity:0.5;text-align:center;font-size:12px;'>No songs yet.</p>";
+      return;
+    }
+
+    container.innerHTML = data.tracks.map((track, i) => `
+      <div class="possession-track" id="pos-${i}" onclick="handleRemove(${i}, '${track.playlistItemId}')">
+        <img src="${track.thumbnail}" alt="${track.title}">
+        <div style="flex:1;overflow:hidden;">
+          <div class="p-title">${track.title}</div>
+          <div class="remove-hint" id="pos-hint-${i}">click to remove</div>
+        </div>
+      </div>
+    `).join("");
+
+  } catch {
+    document.getElementById("possessions-panel").style.display = "none";
+  }
+}
+
+function handleRemove(i, playlistItemId) {
+  const el = document.getElementById(`pos-${i}`);
+  const hint = document.getElementById(`pos-hint-${i}`);
+
+  if (!el.classList.contains("confirm-remove")) {
+    el.classList.add("confirm-remove");
+    hint.innerHTML = `<span style="color:#ff4444;">click again to remove</span>`;
+
+    // Auto reset after 3 seconds if not confirmed
+    setTimeout(() => {
+      el.classList.remove("confirm-remove");
+      hint.innerText = "click to remove";
+    }, 3000);
+    return;
+  }
+
+  // Second click — remove
+  hint.innerText = "removing...";
+  fetch(`/api/youtube-remove?playlistItemId=${playlistItemId}`)
+    .then(r => r.json())
+    .then(result => {
+      if (result.status === "removed") {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.3s ease";
+        setTimeout(() => loadPossessions(), 300);
+      } else {
+        hint.innerText = "error removing";
+      }
+    })
+    .catch(() => {
+      hint.innerText = "error removing";
+    });
 }
 
 let progressInterval = null;
@@ -521,7 +811,6 @@ async function loadNowPlaying() {
 
     document.body.classList.add("playing");
 
-    // 🎨 Update background only if album changed
     if (data.albumImage !== lastAlbumImage) {
       lastAlbumImage = data.albumImage;
       extractColor(data.albumImage, (r, g, b) => {
@@ -565,29 +854,13 @@ async function loadNowPlaying() {
       <div class="yt-note">Adds songs to your private playlist "FROM KIWI :3"</div>
     `;
 
-    const status = document.getElementById("ytStatus");
-
     document.getElementById("ytConnectBtn").onclick = () => {
       window.location.href = "/api/youtube-login";
     };
 
     document.getElementById("ytAddBtn").onclick = async () => {
-      status.innerText = "⏳ Adding...";
-      try {
-        const res = await fetch(
-          `/api/youtube-add?title=${encodeURIComponent(data.title)}&artist=${encodeURIComponent(data.artist)}`
-        );
-        const result = await res.json();
-        if (result.status === "added") {
-          status.innerText = "✅ Added to playlist!";
-        } else if (result.status === "duplicate") {
-          status.innerText = "⚠️ Already in playlist";
-        } else {
-          status.innerText = "❌ " + (result.step || result.message || "Error adding song");
-        }
-      } catch {
-        status.innerText = "❌ Failed to connect";
-      }
+      const status = document.getElementById("ytStatus");
+      await addToYouTube(data.title, data.artist, status);
     };
 
     lyricsBox.innerText = await loadLyrics(data.artist, data.title);
@@ -597,10 +870,19 @@ async function loadNowPlaying() {
   }
 }
 
+// Close overlays when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".recent-track")) {
+    document.querySelectorAll(".recent-track").forEach(t => t.classList.remove("show-overlay"));
+  }
+});
+
 loadNowPlaying();
 loadRecentlyPlayed();
+loadPossessions();
 setInterval(loadNowPlaying, 15000);
 setInterval(loadRecentlyPlayed, 30000);
+setInterval(loadPossessions, 60000);
 </script>
 
 </body>
