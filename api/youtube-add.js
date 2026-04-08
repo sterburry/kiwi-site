@@ -1,15 +1,39 @@
 export default async function handler(req, res) {
   try {
-    const { title, artist } = req.query;
-
     const token = req.cookies.youtube_access_token;
-    console.log("TOKEN:", token);
+
     if (!token) {
-      return res.status(401).json({ error: "Not connected to YouTube" });
+      return res.status(401).json({ error: "No token found" });
     }
 
-    // 🔍 Step 1: Create playlist
-    const createPlaylistRes = await fetch(
+    const { title, artist } = req.query;
+
+    if (!title || !artist) {
+      return res.status(400).json({ error: "Missing song info" });
+    }
+
+    // 🔍 STEP 1 — Search video
+    const searchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(
+        `${title} ${artist}`
+      )}&maxResults=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const searchData = await searchRes.json();
+
+    if (!searchData.items || !searchData.items.length) {
+      return res.json({ error: "No video found" });
+    }
+
+    const videoId = searchData.items[0].id.videoId;
+
+    // 🔥 STEP 2 — CREATE PLAYLIST (FIXED BODY)
+    const playlistRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
       {
         method: "POST",
@@ -20,8 +44,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           snippet: {
             title: "FROM KIWI <3",
-            description: "playlist created by kiwi",
-            defaultLanguage: "en"
+            description: "Songs added from Kiwi site"
           },
           status: {
             privacyStatus: "private"
@@ -30,11 +53,12 @@ export default async function handler(req, res) {
       }
     );
 
-    const playlistData = await createPlaylistRes.json();
+    const playlistData = await playlistRes.json();
+
     console.log("PLAYLIST RESPONSE:", playlistData);
 
     if (!playlistData.id) {
-      return res.status(500).json({
+      return res.json({
         error: "Failed to create playlist",
         details: playlistData
       });
@@ -42,27 +66,7 @@ export default async function handler(req, res) {
 
     const playlistId = playlistData.id;
 
-    // 🔍 Step 2: Search video
-    const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-        artist + " " + title
-      )}&type=video&maxResults=1`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-
-    const searchData = await searchRes.json();
-
-    if (!searchData.items?.length) {
-      return res.status(404).json({ error: "No video found" });
-    }
-
-    const videoId = searchData.items[0].id.videoId;
-
-    // 🔍 Step 3: Add to playlist
+    // 🎵 STEP 3 — ADD VIDEO TO PLAYLIST
     const addRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
       {
@@ -84,10 +88,11 @@ export default async function handler(req, res) {
     );
 
     const addData = await addRes.json();
+
     console.log("ADD RESPONSE:", addData);
 
     if (addData.error) {
-      return res.status(500).json({
+      return res.json({
         error: "Failed to add song",
         details: addData
       });
@@ -96,7 +101,6 @@ export default async function handler(req, res) {
     return res.json({ status: "added" });
 
   } catch (err) {
-    console.error("SERVER ERROR:", err);
     return res.status(500).json({ error: err.message });
   }
 }
