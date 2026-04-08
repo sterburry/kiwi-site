@@ -1,17 +1,24 @@
 export default async function handler(req, res) {
   try {
+    console.log("YouTube add triggered");
+
     const { title, artist } = req.query;
+
+    /* 🔐 GET TOKEN FROM COOKIE (SAFE WAY) */
     const cookies = req.headers.cookie || "";
-const access_token = cookies
-  .split("; ")
-  .find(c => c.startsWith("youtube_access_token="))
-  ?.split("=")[1];
+    const access_token = cookies
+      .split("; ")
+      .find(c => c.startsWith("youtube_access_token="))
+      ?.split("=")[1];
 
     if (!access_token) {
-      return res.status(401).json({ error: "Not authenticated" });
+      return res.status(200).json({
+        status: "error",
+        message: "Not authenticated"
+      });
     }
 
-    /* 🔍 SEARCH VIDEO ON YOUTUBE */
+    /* 🔍 SEARCH VIDEO */
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
         artist + " " + title
@@ -24,13 +31,17 @@ const access_token = cookies
     );
 
     const searchData = await searchRes.json();
-    const videoId = searchData.items?.[0]?.id?.videoId;
 
-    if (!videoId) {
-      return res.status(200).json({ status: "error", message: "No video found" });
+    if (!searchData.items || !searchData.items.length) {
+      return res.status(200).json({
+        status: "error",
+        message: "No video found"
+      });
     }
 
-    /* 📁 GET USER PLAYLISTS */
+    const videoId = searchData.items[0].id.videoId;
+
+    /* 📁 GET PLAYLISTS */
     const playlistsRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=50`,
       {
@@ -42,6 +53,13 @@ const access_token = cookies
 
     const playlistsData = await playlistsRes.json();
 
+    if (!playlistsData.items) {
+      return res.status(200).json({
+        status: "error",
+        message: "Failed to fetch playlists"
+      });
+    }
+
     let playlist = playlistsData.items.find(
       (p) => p.snippet.title === "FROM KIWI <3"
     );
@@ -49,35 +67,40 @@ const access_token = cookies
     /* ➕ CREATE PLAYLIST IF NOT EXISTS */
     if (!playlist) {
       const createRes = await fetch(
-  "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      snippet: {
-        title: "FROM KIWI <3",
-        description: "Songs from Kiwi's Diary 💚",
-      },
-      status: {
-        privacyStatus: "private",
-      },
-    }),
-  }
-);
+        "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            snippet: {
+              title: "FROM KIWI <3",
+              description: "Songs from Kiwi's Diary 💚",
+            },
+            status: {
+              privacyStatus: "private",
+            },
+          }),
+        }
+      );
 
-const createData = await createRes.json();
+      const createData = await createRes.json();
 
-if (!createRes.ok) {
-  return res.status(200).json({
-    status: "error",
-    message: createData
-  });
-}
+      if (!createRes.ok) {
+        return res.status(200).json({
+          status: "error",
+          message: createData.error?.message || "Failed to create playlist"
+        });
+      }
 
-    /* 🔍 CHECK FOR DUPLICATE */
+      playlist = createData;
+    }
+
+    const playlistId = playlist.id;
+
+    /* 🔍 CHECK DUPLICATES */
     const itemsRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50`,
       {
@@ -89,7 +112,7 @@ if (!createRes.ok) {
 
     const itemsData = await itemsRes.json();
 
-    const exists = itemsData.items.some(
+    const exists = itemsData.items?.some(
       (item) => item.snippet.resourceId.videoId === videoId
     );
 
@@ -97,8 +120,8 @@ if (!createRes.ok) {
       return res.status(200).json({ status: "duplicate" });
     }
 
-    /* ➕ ADD VIDEO TO PLAYLIST */
-    await fetch(
+    /* ➕ ADD VIDEO */
+    const addRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
       {
         method: "POST",
@@ -118,11 +141,22 @@ if (!createRes.ok) {
       }
     );
 
+    const addData = await addRes.json();
+
+    if (!addRes.ok) {
+      return res.status(200).json({
+        status: "error",
+        message: addData.error?.message || "Failed to add song"
+      });
+    }
+
     return res.status(200).json({ status: "added" });
 
   } catch (err) {
-  return res.status(500).json({
-    status: "error",
-    message: err.message
-  });
+    console.error("ERROR:", err);
+    return res.status(200).json({
+      status: "error",
+      message: err.message
+    });
+  }
 }
