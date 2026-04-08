@@ -196,7 +196,35 @@ toggleBtn.addEventListener("click", () => {
   sidebar.classList.toggle("open");
   toggleBtn.classList.toggle("open");
 });
+async function addToYouTube(title, artist) {
+  const status = document.getElementById("status");
 
+  try {
+    status.innerText = "⏳ Adding to YouTube...";
+
+    const res = await fetch(
+      `/api/youtube-add?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`
+    );
+
+    const data = await res.json();
+
+    console.log("YouTube API response:", data);
+
+    if (data.status === "added") {
+      status.innerText = "✅ Added to playlist!";
+    } 
+    else if (data.status === "duplicate") {
+      status.innerText = "⚠️ Already in playlist";
+    } 
+    else {
+      status.innerText = "❌ " + (data.step || data.error || "Failed to add song");
+    }
+
+  } catch (err) {
+    console.error(err);
+    status.innerText = "❌ Request failed";
+  }
+}
 /* 🎨 ALBUM COLORS */
 function getColorsFromImage(img) {
   const canvas = document.createElement("canvas");
