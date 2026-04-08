@@ -6,7 +6,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing song info" });
     }
 
-    // ✅ Get token from cookie
     const cookies = req.headers.cookie || "";
     const tokenMatch = cookies.match(/youtube_access_token=([^;]+)/);
 
@@ -17,14 +16,12 @@ export default async function handler(req, res) {
     const accessToken = tokenMatch[1];
 
     // =========================
-    // 1. GET USER PLAYLISTS
+    // 1. GET PLAYLISTS
     // =========================
     const playlistsRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=50",
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` }
       }
     );
 
@@ -35,7 +32,7 @@ export default async function handler(req, res) {
     );
 
     // =========================
-    // 2. CREATE PLAYLIST IF NOT EXISTS
+    // 2. CREATE IF NOT EXISTS
     // =========================
     if (!playlist) {
       const createRes = await fetch(
@@ -59,10 +56,26 @@ export default async function handler(req, res) {
       );
 
       const createData = await createRes.json();
+
+      // 🔴 IMPORTANT CHECK
+      if (!createData.id) {
+        return res.json({
+          error: "Failed to create playlist",
+          details: createData
+        });
+      }
+
       playlist = createData;
     }
 
     const playlistId = playlist.id;
+
+    if (!playlistId) {
+      return res.json({
+        error: "Playlist ID missing",
+        details: playlist
+      });
+    }
 
     // =========================
     // 3. SEARCH VIDEO
@@ -72,15 +85,13 @@ export default async function handler(req, res) {
         title + " " + artist
       )}&type=video&maxResults=1`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` }
       }
     );
 
     const searchData = await searchRes.json();
 
-    if (!searchData.items || !searchData.items.length) {
+    if (!searchData.items?.length) {
       return res.json({ error: "Song not found on YouTube" });
     }
 
@@ -92,9 +103,7 @@ export default async function handler(req, res) {
     const itemsRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` }
       }
     );
 
@@ -109,7 +118,7 @@ export default async function handler(req, res) {
     }
 
     // =========================
-    // 5. ADD TO PLAYLIST
+    // 5. ADD SONG
     // =========================
     const addRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
