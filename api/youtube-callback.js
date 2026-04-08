@@ -25,3 +25,7 @@ export default async function handler(req, res) {
   // Later we store properly in DB
   res.redirect(`/?access_token=${data.access_token}`);
 }
+res.setHeader(
+  "Set-Cookie",
+  `youtube_access_token=${access_token}; Path=/; HttpOnly; Secure; SameSite=None`
+);
