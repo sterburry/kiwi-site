@@ -326,7 +326,7 @@ document.getElementById("ytAddBtn").onclick = async () => {
     } else if (result.status === "duplicate") {
       status.innerText = "⚠️ Already in playlist";
     } else {
-      status.innerText = "❌ Error adding song";
+      status.innerText = "❌ " + (result.message?.error?.message || "Error adding song");
     }
 
   } catch {
