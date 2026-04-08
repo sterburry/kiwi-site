@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing song info" });
     }
 
-    const PLAYLIST_NAME = "FROM KIWI <3";
+    const PLAYLIST_NAME = "FROM KIWI :3";
 
     // 🔍 STEP 1 — Check if playlist already exists
     const listRes = await fetch(
