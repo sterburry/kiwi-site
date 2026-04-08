@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     const access_token = tokenMatch[1];
 
-    // 🔍 STEP 1: SEARCH VIDEO
+    // 🔍 SEARCH VIDEO
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
         artist + " " + title
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     const videoId = searchData.items[0].id.videoId;
 
-    // 📁 STEP 2: GET USER PLAYLISTS
+    // 📁 GET PLAYLISTS
     const playlistRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=50`,
       {
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       p => p.snippet.title === "FROM KIWI <3"
     );
 
-    // 📦 STEP 3: CREATE PLAYLIST IF NOT EXISTS
+    // 📦 CREATE PLAYLIST IF NOT EXISTS
     if (!playlist) {
       const createRes = await fetch(
         "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
 
     const playlistId = playlist.id;
 
-    // 🔎 STEP 4: CHECK DUPLICATES
+    // 🔎 CHECK DUPLICATES
     const itemsRes = await fetch(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50`,
       {
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
       return res.json({ status: "duplicate" });
     }
 
-    // ➕ STEP 5: ADD VIDEO TO PLAYLIST
+    // ➕ ADD TO PLAYLIST
     await fetch(
       "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
       {
