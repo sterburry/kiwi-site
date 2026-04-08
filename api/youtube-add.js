@@ -1,7 +1,11 @@
 export default async function handler(req, res) {
   try {
     const { title, artist } = req.query;
-    const access_token = req.cookies.youtube_access_token;
+    const cookies = req.headers.cookie || "";
+const access_token = cookies
+  .split("; ")
+  .find(c => c.startsWith("youtube_access_token="))
+  ?.split("=")[1];
 
     if (!access_token) {
       return res.status(401).json({ error: "Not authenticated" });
