@@ -14,6 +14,7 @@
       transition: background 1.5s ease;
     }
 
+    /* 🌙 DARK MODE */
     body:not(.playing) {
       background: linear-gradient(
         120deg,
@@ -34,12 +35,11 @@
 
     @keyframes pastelFade {
       0% { background-position: 0% 50%; }
-      25% { background-position: 25% 60%; }
       50% { background-position: 100% 50%; }
-      75% { background-position: 75% 40%; }
       100% { background-position: 0% 50%; }
     }
 
+    /* ☰ BUTTON */
     #toggleBtn {
       position: fixed;
       top: 15px;
@@ -54,6 +54,11 @@
       border-radius: 6px;
     }
 
+    #toggleBtn.open {
+      opacity: 0.5;
+    }
+
+    /* SIDEBAR */
     .sidebar {
       width: 200px;
       padding: 30px;
@@ -63,13 +68,32 @@
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(12px);
       transform: translateX(-100%);
-      transition: 0.3s;
+      transition: transform 0.3s ease;
     }
 
     .sidebar.open {
       transform: translateX(0);
     }
 
+    .sidebar h3 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    .sidebar a {
+      display: block;
+      color: white;
+      opacity: 0.85;
+      margin: 10px 0;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover {
+      opacity: 1;
+      color: #1DB954;
+    }
+
+    /* MAIN */
     .main {
       flex: 1;
       text-align: center;
@@ -80,19 +104,48 @@
       margin: 20px;
     }
 
-    #actions a, #actions button {
-      display: inline-block;
-      margin: 5px;
-      padding: 10px 15px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      color: white;
+    #spotify-widget {
+      margin-top: 30px;
+      padding: 15px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
     }
 
-    .spotifyBtn { background: #1DB954; }
-    .ytBtn { background: #ff0000; }
+    #actions {
+      margin-top: 20px;
+    }
+
+    #actions a,
+    #actions button {
+      display: inline-block;
+      padding: 10px 15px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 10px;
+      text-decoration: none;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      margin: 5px;
+    }
+
+    #actions a:hover {
+      background: #1DB954;
+    }
+
+    #actions button:hover {
+      background: #ff0000;
+    }
+
+    .yt-note {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.7;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.4;
+    }
 
     #lyrics {
       margin-top: 20px;
@@ -100,16 +153,11 @@
       background: rgba(0,0,0,0.5);
       border-radius: 12px;
       max-width: 600px;
-      margin: auto;
+      margin-left: auto;
+      margin-right: auto;
       white-space: pre-wrap;
     }
 
-    #spotify-widget {
-      margin-top: 30px;
-      padding: 15px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 12px;
-    }
   </style>
 </head>
 
@@ -117,13 +165,16 @@
 
 <button id="toggleBtn">☰</button>
 
+<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <h3>Links</h3>
-  <a href="https://instagram.com" target="_blank">Instagram</a>
-  <a href="https://x.com" target="_blank">Twitter</a>
-  <a href="https://github.com" target="_blank">GitHub</a>
+  <a href="https://instagram.com/kevvv.78/" target="_blank">Instagram</a>
+  <a href="https://x.com/PrivateIWIK" target="_blank">Twitter</a>
+  <a href="https://github.com/sterburry" target="_blank">GitHub</a>
+  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank">Spotify</a>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
   <h1>KIWI'S DIARY</h1>
@@ -139,11 +190,14 @@
 
 <script>
 const sidebar = document.getElementById("sidebar");
-document.getElementById("toggleBtn").onclick = () => {
-  sidebar.classList.toggle("open");
-};
+const toggleBtn = document.getElementById("toggleBtn");
 
-/* COLOR EXTRACTION */
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("open");
+  toggleBtn.classList.toggle("open");
+});
+
+/* 🎨 ALBUM COLORS */
 function getColorsFromImage(img) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -157,100 +211,105 @@ function getColorsFromImage(img) {
   const colors = [];
 
   for (let i = 0; i < data.length; i += 1000) {
-    colors.push(`rgb(${data[i]}, ${data[i+1]}, ${data[i+2]})`);
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    colors.push(`rgb(${r}, ${g}, ${b})`);
   }
 
   return colors.slice(0, 4);
 }
 
-/* LYRICS */
+/* 🎤 LYRICS */
 async function loadLyrics(artist, title) {
-  const res = await fetch(`https://lrclib.net/api/search?q=${artist+" "+title}`);
-  const data = await res.json();
-  return data[0]?.plainLyrics || "No lyrics found.";
+  try {
+    const res = await fetch(
+      `https://lrclib.net/api/search?q=${encodeURIComponent(artist + " " + title)}`
+    );
+    const data = await res.json();
+    if (!data.length) return "No lyrics found.";
+    return data[0].plainLyrics || "No lyrics available.";
+  } catch {
+    return "Error loading lyrics.";
+  }
 }
 
-/* NOW PLAYING */
+/* 🎧 NOW PLAYING */
 async function loadNowPlaying() {
-  const res = await fetch("/api/now-playing");
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/now-playing");
+    const data = await res.json();
 
-  const container = document.getElementById("spotify-widget");
-  const actions = document.getElementById("actions");
-  const lyrics = document.getElementById("lyrics");
+    const container = document.getElementById("spotify-widget");
+    const lyricsBox = document.getElementById("lyrics");
+    const actions = document.getElementById("actions");
 
-  if (!data.isPlaying) {
-    document.body.classList.remove("playing");
-    container.innerHTML = "Nothing playing.";
-    actions.innerHTML = "";
-    lyrics.innerHTML = "";
-    return;
+    if (!data.isPlaying) {
+      document.body.classList.remove("playing");
+      container.innerHTML = `
+        <h3>NOT LISTENING TO ANYTHING ATM. WHICH MEANS IM EITHER DEAD OR ASLEEP :3</h3>
+      `;
+      lyricsBox.innerHTML = "";
+      actions.innerHTML = "";
+      return;
+    }
+
+    document.body.classList.add("playing");
+
+    /* 🎨 background */
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = data.albumImage;
+
+    img.onload = () => {
+      const colors = getColorsFromImage(img);
+
+      document.body.style.background = `
+        linear-gradient(120deg,
+          ${colors[0]},
+          ${colors[1]},
+          ${colors[2]},
+          ${colors[3]}
+        )
+      `;
+      document.body.style.backgroundSize = "400% 400%";
+      document.body.style.animation = "pastelFade 20s ease infinite";
+    };
+
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
+        <img src="${data.albumImage}" width="70" height="70" style="border-radius:8px;">
+        <div>
+          <div><b>${data.title}</b></div>
+          <div>${data.artist}</div>
+        </div>
+      </div>
+    `;
+
+    actions.innerHTML = `
+      <a href="${data.songUrl}" target="_blank">
+        ➕ Open in Spotify
+      </a>
+
+      <button id="ytConnectBtn">
+        🎬 Connect YouTube
+      </button>
+
+      <div class="yt-note">
+        Only adds songs to a playlist. No videos or account data are modified.
+      </div>
+    `;
+
+    document.getElementById("ytConnectBtn").onclick = () => {
+      window.location.href = "/api/youtube-login";
+    };
+
+    lyricsBox.innerText = await loadLyrics(data.artist, data.title);
+
+  } catch (err) {
+    document.getElementById("spotify-widget").innerHTML =
+      "⚠️ Error loading Spotify data";
   }
-
-  document.body.classList.add("playing");
-
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  img.src = data.albumImage;
-
-  img.onload = () => {
-    const colors = getColorsFromImage(img);
-
-    document.body.style.background =
-      `linear-gradient(120deg,
-        ${colors[0]},
-        ${colors[1]},
-        ${colors[2]},
-        ${colors[3]}
-      )`;
-
-    document.body.style.backgroundSize = "400% 400%";
-    document.body.style.animation = "pastelFade 20s ease infinite";
-  };
-
-  container.innerHTML = `
-    <img src="${data.albumImage}" width="80" style="border-radius:10px;">
-    <div><b>${data.title}</b></div>
-    <div>${data.artist}</div>
-  `;
-
-  /* ACTION BUTTONS */
-  actions.innerHTML = `
-    <a class="spotifyBtn" href="${data.songUrl}" target="_blank">
-      Open in Spotify
-    </a>
-
-    <button class="ytBtn" id="ytLogin">
-      Connect YouTube
-    </button>
-
-    <button class="ytBtn" id="ytAdd">
-      ➕ Add to YouTube Playlist
-    </button>
-  `;
-
-  /* YOUTUBE LOGIN */
-  document.getElementById("ytLogin").onclick = () => {
-    window.location.href = "/api/youtube-login";
-  };
-
-  /* ADD TO PLAYLIST */
-  document.getElementById("ytAdd").onclick = async () => {
-    const res = await fetch("/api/youtube-add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: data.title,
-        artist: data.artist
-      })
-    });
-
-    const result = await res.json();
-    alert(result.message || "Added!");
-  };
-
-  lyrics.innerText = "Loading lyrics...";
-  lyrics.innerText = await loadLyrics(data.artist, data.title);
 }
 
 loadNowPlaying();
