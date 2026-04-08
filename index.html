@@ -46,8 +46,8 @@
     }
 
     .sidebar {
-      width: 200px;
-      padding: 30px;
+      width: 220px;
+      padding: 30px 20px;
       position: fixed;
       height: 100%;
       background: rgba(0,0,0,0.6);
@@ -55,10 +55,63 @@
       transform: translateX(-100%);
       transition: transform 0.3s ease;
       z-index: 100;
+      box-sizing: border-box;
     }
 
     .sidebar.open {
       transform: translateX(0);
+    }
+
+    .sidebar h3 {
+      margin-top: 40px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.5;
+    }
+
+    .nav-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-card:hover {
+      border-color: var(--platform-color);
+      box-shadow: 0 0 12px var(--platform-color);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .nav-card .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: var(--platform-color);
+      flex-shrink: 0;
+    }
+
+    .nav-card .label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .nav-card .sublabel {
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 2px;
     }
 
     .main {
@@ -111,10 +164,47 @@
 
 <div class="sidebar" id="sidebar">
   <h3>Links</h3>
-  <a href="https://instagram.com" target="_blank">Instagram</a>
-  <a href="https://x.com" target="_blank">Twitter</a>
-  <a href="https://github.com" target="_blank">GitHub</a>
-  <a href="https://spotify.com" target="_blank">Spotify</a>
+
+  <a href="https://www.instagram.com/kevvv.78/" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
+    <div class="icon">📸</div>
+    <div>
+      <div class="label">Instagram</div>
+      <div class="sublabel">@kevvv.78</div>
+    </div>
+  </a>
+
+  <a href="https://x.com/PrivateIWIK" target="_blank" class="nav-card" style="--platform-color: #ffffff;">
+    <div class="icon">𝕏</div>
+    <div>
+      <div class="label">Twitter</div>
+      <div class="sublabel">@PrivateIWIK</div>
+    </div>
+  </a>
+
+  <a href="https://www.twitch.tv/private_moment" target="_blank" class="nav-card" style="--platform-color: #9146FF;">
+    <div class="icon">🎮</div>
+    <div>
+      <div class="label">Twitch</div>
+      <div class="sublabel">private_moment</div>
+    </div>
+  </a>
+
+  <a href="https://www.twitch.tv/sterburry" target="_blank" class="nav-card" style="--platform-color: #9146FF;">
+    <div class="icon">🎮</div>
+    <div>
+      <div class="label">Alt</div>
+      <div class="sublabel">sterburry</div>
+    </div>
+  </a>
+
+  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
+    <div class="icon">🎵</div>
+    <div>
+      <div class="label">Spotify</div>
+      <div class="sublabel">IWIK</div>
+    </div>
+  </a>
+
 </div>
 
 <div class="main">
