@@ -4,6 +4,10 @@
   <title>KIWI'S DIARY</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       color: white;
@@ -11,7 +15,7 @@
       display: flex;
       min-height: 100vh;
       overflow-x: hidden;
-      transition: background 1.5s ease;
+      transition: background 2s ease;
     }
 
     body:not(.playing) {
@@ -50,6 +54,7 @@
       transition: transform 0.3s ease;
       z-index: 100;
       box-sizing: border-box;
+      overflow-y: auto;
     }
 
     .sidebar.open {
@@ -111,7 +116,7 @@
     .main {
       flex: 1;
       text-align: center;
-      padding: 60px 20px;
+      padding: 60px 20px 40px;
       background: rgba(0,0,0,0.45);
       backdrop-filter: blur(12px);
       border-radius: 20px;
@@ -119,44 +124,37 @@
       z-index: 0;
     }
 
-    #actions button,
-    #actions a {
-      padding: 10px 15px;
-      margin: 5px;
-      border-radius: 10px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
+    /* 🎵 NOW PLAYING */
+    #spotify-widget {
+      margin-bottom: 20px;
     }
 
-    #actions button:hover {
-      background: #1DB954;
-    }
-
-    .yt-note {
-      margin-top: 10px;
-      font-size: 12px;
-      opacity: 0.7;
-    }
-
-    #lyrics {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0,0,0,0.5);
+    #spotify-widget img {
       border-radius: 12px;
-      white-space: pre-wrap;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      margin-bottom: 12px;
+    }
+
+    #spotify-widget .song-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    #spotify-widget .song-artist {
+      font-size: 14px;
+      opacity: 0.6;
+      margin-bottom: 12px;
     }
 
     /* 🎵 PROGRESS BAR */
     .progress-container {
-      margin-top: 14px;
+      margin: 12px auto 0;
       width: 100%;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 320px;
     }
 
     .progress-times {
@@ -182,29 +180,59 @@
       transition: width 1s linear;
     }
 
-    /* 🕓 RECENTLY PLAYED */
-    #recently-played {
-      margin-top: 40px;
-      text-align: left;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
+    /* 🎛 ACTIONS */
+    #actions {
+      margin: 20px 0;
     }
 
-    #recently-played h3 {
-      text-align: center;
-      margin-bottom: 16px;
+    #actions button,
+    #actions a {
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
       font-size: 13px;
+    }
+
+    #actions button:hover {
+      background: #1DB954;
+    }
+
+    .yt-note {
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    /* 📐 TWO COLUMN LAYOUT */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    .section-title {
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 2px;
-      opacity: 0.5;
+      opacity: 0.4;
+      margin-bottom: 14px;
+      text-align: center;
     }
 
+    /* 🕓 RECENTLY PLAYED */
     .recent-track {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
+      gap: 10px;
+      padding: 10px 12px;
       margin-bottom: 8px;
       border-radius: 12px;
       background: rgba(255,255,255,0.05);
@@ -220,8 +248,8 @@
     }
 
     .recent-track img {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 6px;
       flex-shrink: 0;
     }
@@ -253,11 +281,51 @@
       opacity: 0.4;
       flex-shrink: 0;
     }
+
+    /* 🎤 LYRICS */
+    #lyrics {
+      padding: 14px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 400px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    #lyrics::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #lyrics::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+
+    /* 📱 MOBILE */
+    @media (max-width: 600px) {
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .main {
+        margin: 10px;
+        padding: 50px 14px 30px;
+      }
+    }
+
+    /* 🎨 ALBUM COLOR CANVAS (hidden) */
+    #colorCanvas {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
 
+<canvas id="colorCanvas"></canvas>
 <button id="toggleBtn">☰</button>
 
 <div class="sidebar" id="sidebar">
@@ -295,7 +363,7 @@
     </div>
   </a>
 
-  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
+  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhi" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
     <div class="icon">🎵</div>
     <div>
       <div class="label">Spotify</div>
@@ -306,21 +374,21 @@
 </div>
 
 <div class="main">
-
   <h1>KIWI'S DIARY</h1>
 
   <div id="spotify-widget">Loading music...</div>
-
   <div id="actions"></div>
 
-  <div id="recently-played">
-    <h3>Recently Played</h3>
-    <div id="recent-tracks">Loading...</div>
+  <div class="bottom-grid">
+    <div>
+      <div class="section-title">Recently Played</div>
+      <div id="recent-tracks">Loading...</div>
+    </div>
+    <div>
+      <div class="section-title">Lyrics</div>
+      <div id="lyrics">Loading lyrics...</div>
+    </div>
   </div>
-
-  <h3>Lyrics</h3>
-  <div id="lyrics">Loading lyrics...</div>
-
 </div>
 
 <script>
@@ -337,18 +405,54 @@ function formatTime(ms) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-/* ⏰ FORMAT PLAYED AT TIME */
+/* ⏰ FORMAT PLAYED AT */
 function formatPlayedAt(isoString) {
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
-
   if (diffMins < 1) return "just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   return `${Math.floor(diffHours / 24)}d ago`;
+}
+
+/* 🎨 EXTRACT ALBUM COLOR */
+function extractColor(imageUrl, callback) {
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = imageUrl;
+  img.onload = () => {
+    const canvas = document.getElementById("colorCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let r = 0, g = 0, b = 0, count = 0;
+
+    for (let i = 0; i < data.length; i += 40) {
+      r += data[i];
+      g += data[i + 1];
+      b += data[i + 2];
+      count++;
+    }
+
+    r = Math.floor(r / count);
+    g = Math.floor(g / count);
+    b = Math.floor(b / count);
+
+    // Darken the color so it works as a background
+    const darken = 0.4;
+    r = Math.floor(r * darken);
+    g = Math.floor(g * darken);
+    b = Math.floor(b * darken);
+
+    callback(r, g, b);
+  };
+  img.onerror = () => callback(15, 15, 30);
 }
 
 /* 🎤 LYRICS */
@@ -371,7 +475,7 @@ async function loadRecentlyPlayed() {
     const container = document.getElementById("recent-tracks");
 
     if (!data.tracks || !data.tracks.length) {
-      container.innerHTML = "<p style='opacity:0.5;text-align:center;'>Nothing yet.</p>";
+      container.innerHTML = "<p style='opacity:0.5;text-align:center;font-size:13px;'>Nothing yet.</p>";
       return;
     }
 
@@ -386,12 +490,13 @@ async function loadRecentlyPlayed() {
       </a>
     `).join("");
 
-  } catch (err) {
-    document.getElementById("recent-tracks").innerHTML = "<p style='opacity:0.5;text-align:center;'>Error loading.</p>";
+  } catch {
+    document.getElementById("recent-tracks").innerHTML = "<p style='opacity:0.5;text-align:center;font-size:13px;'>Error loading.</p>";
   }
 }
 
 let progressInterval = null;
+let lastAlbumImage = null;
 
 /* 🎧 NOW PLAYING */
 async function loadNowPlaying() {
@@ -405,31 +510,38 @@ async function loadNowPlaying() {
 
     if (!data.isPlaying) {
       document.body.classList.remove("playing");
-      container.innerHTML = "Not listening right now.";
+      document.body.style.background = "";
+      container.innerHTML = "<p style='opacity:0.6;'>Not listening right now.</p>";
       actions.innerHTML = "";
       lyricsBox.innerHTML = "";
       if (progressInterval) clearInterval(progressInterval);
+      lastAlbumImage = null;
       return;
     }
 
     document.body.classList.add("playing");
 
+    // 🎨 Update background only if album changed
+    if (data.albumImage !== lastAlbumImage) {
+      lastAlbumImage = data.albumImage;
+      extractColor(data.albumImage, (r, g, b) => {
+        document.body.style.background = `linear-gradient(135deg, rgb(${r},${g},${b}), rgb(${Math.floor(r*0.6)},${Math.floor(g*0.6)},${Math.floor(b*0.6)}))`;
+      });
+    }
+
     const percent = (data.progress / data.duration) * 100;
 
     container.innerHTML = `
-      <div>
-        <img src="${data.albumImage}" width="70" style="border-radius:8px;">
-        <div><b>${data.title}</b></div>
-        <div>${data.artist}</div>
-
-        <div class="progress-container">
-          <div class="progress-times">
-            <span id="currentTime">${formatTime(data.progress)}</span>
-            <span>${formatTime(data.duration)}</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressFill" style="width: ${percent}%"></div>
-          </div>
+      <img src="${data.albumImage}" alt="Album art">
+      <div class="song-title">${data.title}</div>
+      <div class="song-artist">${data.artist}</div>
+      <div class="progress-container">
+        <div class="progress-times">
+          <span id="currentTime">${formatTime(data.progress)}</span>
+          <span>${formatTime(data.duration)}</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width: ${percent}%"></div>
         </div>
       </div>
     `;
@@ -466,7 +578,6 @@ async function loadNowPlaying() {
           `/api/youtube-add?title=${encodeURIComponent(data.title)}&artist=${encodeURIComponent(data.artist)}`
         );
         const result = await res.json();
-        console.log(result);
         if (result.status === "added") {
           status.innerText = "✅ Added to playlist!";
         } else if (result.status === "duplicate") {
@@ -474,14 +585,14 @@ async function loadNowPlaying() {
         } else {
           status.innerText = "❌ " + (result.step || result.message || "Error adding song");
         }
-      } catch (err) {
+      } catch {
         status.innerText = "❌ Failed to connect";
       }
     };
 
     lyricsBox.innerText = await loadLyrics(data.artist, data.title);
 
-  } catch (err) {
+  } catch {
     document.getElementById("spotify-widget").innerHTML = "Error loading data";
   }
 }
