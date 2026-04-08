@@ -287,19 +287,52 @@ async function loadNowPlaying() {
     `;
 
     actions.innerHTML = `
-      <a href="${data.songUrl}" target="_blank">
-        ➕ Open in Spotify
-      </a>
+  <a href="${data.songUrl}" target="_blank">
+    ➕ Open in Spotify
+  </a>
 
-      <button id="ytConnectBtn">
-        🎬 Connect YouTube
-      </button>
+  <button id="ytConnectBtn">
+    🎬 Connect YouTube
+  </button>
 
-      <div class="yt-note">
-        Only adds songs to a playlist. No videos or account data are modified.
-      </div>
-    `;
+  <button id="ytAddBtn">
+    ➕ Add to YouTube Playlist
+  </button>
 
+  <div id="ytStatus" class="yt-note"></div>
+
+  <div class="yt-note">
+    Only adds songs to a playlist. No videos or account data are modified.
+  </div>
+`;
+document.getElementById("ytConnectBtn").onclick = () => {
+  window.location.href = "/api/youtube-login";
+};
+
+document.getElementById("ytAddBtn").onclick = async () => {
+  const status = document.getElementById("ytStatus");
+
+  status.innerText = "Adding...";
+
+  try {
+    const res = await fetch(
+      `/api/youtube-add?title=${encodeURIComponent(data.title)}&artist=${encodeURIComponent(data.artist)}`
+    );
+
+    const result = await res.json();
+
+    if (result.status === "added") {
+      status.innerText = "✅ Added to playlist!";
+    } else if (result.status === "duplicate") {
+      status.innerText = "⚠️ Already in playlist";
+    } else {
+      status.innerText = "❌ Error adding song";
+    }
+
+  } catch {
+    status.innerText = "❌ Failed to connect";
+  }
+};
     document.getElementById("ytConnectBtn").onclick = () => {
       window.location.href = "/api/youtube-login";
     };
