@@ -45,30 +45,33 @@ export default async function handler(req, res) {
     /* ➕ CREATE PLAYLIST IF NOT EXISTS */
     if (!playlist) {
       const createRes = await fetch(
-        "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            snippet: {
-              title: "FROM KIWI <3",
-              description: "Songs from Kiwi's Diary 💚",
-            },
-            status: {
-              privacyStatus: "private",
-            },
-          }),
-        }
-      );
+  "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      snippet: {
+        title: "FROM KIWI <3",
+        description: "Songs from Kiwi's Diary 💚",
+      },
+      status: {
+        privacyStatus: "private",
+      },
+    }),
+  }
+);
 
-      const newPlaylist = await createRes.json();
-      playlist = newPlaylist;
-    }
+const createData = await createRes.json();
 
-    const playlistId = playlist.id;
+if (!createRes.ok) {
+  return res.status(200).json({
+    status: "error",
+    message: createData
+  });
+}
 
     /* 🔍 CHECK FOR DUPLICATE */
     const itemsRes = await fetch(
@@ -114,6 +117,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ status: "added" });
 
   } catch (err) {
-    return res.status(500).json({ status: "error" });
-  }
+  return res.status(500).json({
+    status: "error",
+    message: err.message
+  });
 }
