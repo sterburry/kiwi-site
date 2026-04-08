@@ -3,44 +3,27 @@ export default async function handler(req, res) {
     const { title, artist } = req.query;
 
     if (!title || !artist) {
-      return res.json({ status: "error", step: "missing_params" });
+      return res.status(400).json({ error: "Missing song info" });
     }
 
+    // ✅ Get token from cookie
     const cookies = req.headers.cookie || "";
     const tokenMatch = cookies.match(/youtube_access_token=([^;]+)/);
 
     if (!tokenMatch) {
-      return res.json({ status: "error", step: "auth_missing" });
+      return res.json({ error: "Not connected to YouTube" });
     }
 
-    const access_token = tokenMatch[1];
+    const accessToken = tokenMatch[1];
 
-    // 1. SEARCH VIDEO
-    const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-        artist + " " + title
-      )}&type=video&maxResults=1`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
-      }
-    );
-
-    const searchData = await searchRes.json();
-
-    if (!searchData.items || searchData.items.length === 0) {
-      return res.json({ status: "error", step: "no_results" });
-    }
-
-    const videoId = searchData.items[0].id.videoId;
-
-    // 2. CHECK EXISTING PLAYLISTS
+    // =========================
+    // 1. GET USER PLAYLISTS
+    // =========================
     const playlistsRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true`,
+      "https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=50",
       {
         headers: {
-          Authorization: `Bearer ${access_token}`
+          Authorization: `Bearer ${accessToken}`
         }
       }
     );
@@ -48,23 +31,25 @@ export default async function handler(req, res) {
     const playlistsData = await playlistsRes.json();
 
     let playlist = playlistsData.items?.find(
-      (p) => p.snippet.title === "FROM KIWI <3"
+      p => p.snippet.title === "FROM KIWI <3"
     );
 
-    // 3. CREATE PLAYLIST IF NOT EXISTS
+    // =========================
+    // 2. CREATE PLAYLIST IF NOT EXISTS
+    // =========================
     if (!playlist) {
       const createRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/playlists?part=snippet,status`,
+        "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${access_token}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
             snippet: {
               title: "FROM KIWI <3",
-              description: "Auto-generated playlist"
+              description: "Songs added from Kiwi's Diary"
             },
             status: {
               privacyStatus: "private"
@@ -79,21 +64,67 @@ export default async function handler(req, res) {
 
     const playlistId = playlist.id;
 
-    // 4. ADD VIDEO
+    // =========================
+    // 3. SEARCH VIDEO
+    // =========================
+    const searchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+        title + " " + artist
+      )}&type=video&maxResults=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    const searchData = await searchRes.json();
+
+    if (!searchData.items || !searchData.items.length) {
+      return res.json({ error: "Song not found on YouTube" });
+    }
+
+    const videoId = searchData.items[0].id.videoId;
+
+    // =========================
+    // 4. CHECK DUPLICATES
+    // =========================
+    const itemsRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    const itemsData = await itemsRes.json();
+
+    const exists = itemsData.items?.some(
+      item => item.snippet.resourceId.videoId === videoId
+    );
+
+    if (exists) {
+      return res.json({ status: "duplicate" });
+    }
+
+    // =========================
+    // 5. ADD TO PLAYLIST
+    // =========================
     const addRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet`,
+      "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${access_token}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
           snippet: {
-            playlistId,
+            playlistId: playlistId,
             resourceId: {
               kind: "youtube#video",
-              videoId
+              videoId: videoId
             }
           }
         })
@@ -102,18 +133,19 @@ export default async function handler(req, res) {
 
     const addData = await addRes.json();
 
-    // 5. SUCCESS
-    return res.json({
-      status: "added",
-      videoId,
-      playlistId
-    });
+    if (addData.error) {
+      return res.json({
+        error: "YouTube API failed",
+        details: addData.error
+      });
+    }
+
+    return res.json({ status: "added" });
 
   } catch (err) {
     return res.json({
-      status: "error",
-      step: "catch",
-      message: err.message
+      error: "Server crashed",
+      details: err.message
     });
   }
 }
