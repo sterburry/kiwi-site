@@ -25,6 +25,10 @@ export default async function handler(req, res) {
 
     const searchData = await searchRes.json();
 
+if (searchData.error) {
+  return res.json({ status: "error", details: "No video found" });
+}
+
     if (!searchData.items || !searchData.items.length) {
       return res.json({ status: "error" });
     }
