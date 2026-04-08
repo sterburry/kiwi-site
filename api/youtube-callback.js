@@ -26,13 +26,11 @@ export default async function handler(req, res) {
       return res.status(500).json(data);
     }
 
-    // ✅ store token in cookie
     res.setHeader(
       "Set-Cookie",
       `youtube_access_token=${data.access_token}; Path=/; HttpOnly; Secure; SameSite=None`
     );
 
-    // ✅ redirect back to site
     res.redirect("/");
     
   } catch (err) {
