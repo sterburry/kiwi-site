@@ -11,7 +11,7 @@ export default function handler(req, res) {
   `&response_type=code` +
   `&access_type=offline` +
   `&prompt=consent` +
-  `&scope=${encodeURIComponent("https://www.googleapis.com/auth/youtube.force-ssl")}`;
+  `&scope=${encodeURIComponent(scope)}`;
 
   // 🚀 THIS WAS MISSING
   res.redirect(authUrl);
