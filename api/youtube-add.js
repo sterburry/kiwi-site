@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     const { title, artist } = req.query;
 
     const token = req.cookies.youtube_access_token;
-
+    console.log("TOKEN:", token);
     if (!token) {
       return res.status(401).json({ error: "Not connected to YouTube" });
     }
