@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
   try {
     const { title, artist } = req.query;
-
     const token = req.cookies.youtube_access_token;
 
     if (!token) {
       return res.status(401).json({ error: "Not connected to YouTube" });
     }
 
-    // 🎯 STEP 1: CREATE PLAYLIST (FIXED BODY)
+    // ✅ STEP 1: CREATE PLAYLIST (STRICT FORMAT)
     const createPlaylistRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status",
       {
@@ -20,8 +19,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           snippet: {
             title: "FROM KIWI <3",
-            description: "Songs added from my website",
-            defaultLanguage: "en"
+            description: "playlist created by kiwi site"
           },
           status: {
             privacyStatus: "private"
@@ -32,6 +30,8 @@ export default async function handler(req, res) {
 
     const playlistData = await createPlaylistRes.json();
 
+    console.log("PLAYLIST RESPONSE:", playlistData);
+
     if (!playlistData.id) {
       return res.status(500).json({
         error: "Failed to create playlist",
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     const playlistId = playlistData.id;
 
-    // 🎯 STEP 2: SEARCH VIDEO
+    // ✅ STEP 2: SEARCH VIDEO
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(
         artist + " " + title
@@ -55,13 +55,13 @@ export default async function handler(req, res) {
 
     const searchData = await searchRes.json();
 
-    if (!searchData.items.length) {
+    if (!searchData.items || !searchData.items.length) {
       return res.status(404).json({ error: "No video found" });
     }
 
     const videoId = searchData.items[0].id.videoId;
 
-    // 🎯 STEP 3: ADD TO PLAYLIST
+    // ✅ STEP 3: ADD VIDEO
     const addRes = await fetch(
       "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet",
       {
@@ -83,6 +83,8 @@ export default async function handler(req, res) {
     );
 
     const addData = await addRes.json();
+
+    console.log("ADD RESPONSE:", addData);
 
     if (!addData.id) {
       return res.status(500).json({
