@@ -136,7 +136,6 @@
       min-width: 0;
     }
 
-    /* MY POSSESSIONS - RIGHT SIDE */
     #possessions-panel {
       display: none;
       width: 220px;
@@ -297,7 +296,7 @@
     #lyrics::-webkit-scrollbar { width: 4px; }
     #lyrics::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
-    /* 🗒️ GUESTBOOK */
+    /* GUESTBOOK */
     #guestbook {
       margin-top: 40px;
       position: relative;
@@ -343,7 +342,41 @@
       min-height: 500px;
     }
 
-    /* STICKY NOTES */
+    /* placing mode hint */
+    #place-hint {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 3000;
+      pointer-events: none;
+    }
+
+    /* floating preview note while placing */
+    #floating-note {
+      display: none;
+      position: fixed;
+      width: 160px;
+      min-height: 160px;
+      border-radius: 4px;
+      padding: 10px;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+      pointer-events: none;
+      z-index: 2999;
+      opacity: 0.85;
+      flex-direction: column;
+    }
+
+    #floating-note img { width: 100%; border-radius: 4px; }
+    #floating-note .note-message { font-size: 12px; color: rgba(0,0,0,0.8); margin-top: 6px; word-break: break-word; }
+    #floating-note .note-nick { font-size: 10px; color: rgba(0,0,0,0.5); text-align: right; margin-top: 4px; font-style: italic; }
+
     .sticky-note {
       position: absolute;
       width: 160px;
@@ -359,27 +392,9 @@
 
     .sticky-note.admin-draggable { cursor: grab; }
     .sticky-note.admin-draggable:active { cursor: grabbing; }
-
-    .sticky-note canvas {
-      width: 100%;
-      border-radius: 4px;
-      flex: 1;
-    }
-
-    .sticky-note .note-message {
-      font-size: 12px;
-      color: rgba(0,0,0,0.8);
-      margin-top: 6px;
-      word-break: break-word;
-    }
-
-    .sticky-note .note-nick {
-      font-size: 10px;
-      color: rgba(0,0,0,0.5);
-      text-align: right;
-      margin-top: 4px;
-      font-style: italic;
-    }
+    .sticky-note img { width: 100%; border-radius: 4px; flex: 1; }
+    .sticky-note .note-message { font-size: 12px; color: rgba(0,0,0,0.8); margin-top: 6px; word-break: break-word; }
+    .sticky-note .note-nick { font-size: 10px; color: rgba(0,0,0,0.5); text-align: right; margin-top: 4px; font-style: italic; }
 
     .sticky-note .admin-delete {
       position: absolute;
@@ -400,7 +415,7 @@
 
     body.admin-mode .sticky-note .admin-delete { display: flex; }
 
-    /* DRAWING MODAL */
+    /* DRAW MODAL */
     #draw-modal {
       display: none;
       position: fixed;
@@ -421,12 +436,7 @@
       max-width: 95vw;
     }
 
-    #draw-box h3 {
-      margin: 0 0 14px;
-      font-size: 14px;
-      text-align: center;
-      opacity: 0.7;
-    }
+    #draw-box h3 { margin: 0 0 14px; font-size: 14px; text-align: center; opacity: 0.7; }
 
     #draw-canvas {
       width: 100%;
@@ -467,17 +477,9 @@
     }
 
     .brush-label { font-size: 11px; opacity: 0.5; margin-left: auto; }
+    #brush-size { width: 80px; accent-color: #1DB954; }
 
-    #brush-size {
-      width: 80px;
-      accent-color: #1DB954;
-    }
-
-    .draw-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-    }
+    .draw-actions { display: flex; gap: 8px; margin-top: 14px; }
 
     .draw-actions input {
       flex: 1;
@@ -504,7 +506,6 @@
     #clear-btn { background: rgba(255,255,255,0.1); color: white; }
     #cancel-btn { background: rgba(255,68,68,0.3); color: white; }
 
-    /* NOTE COLOR PICKER */
     .note-colors { display: flex; gap: 6px; margin-top: 10px; }
     .note-color-opt {
       width: 20px;
@@ -516,7 +517,6 @@
     }
     .note-color-opt.active { border-color: white; }
 
-    /* ADMIN MODE */
     #admin-btn {
       position: fixed;
       bottom: 20px;
@@ -539,6 +539,9 @@
 
     #colorCanvas { display: none; }
 
+    /* placing mode cursor */
+    body.placing-mode { cursor: crosshair; }
+
     @media (max-width: 700px) {
       .page-wrap { flex-direction: column; padding: 10px; }
       #possessions-panel { width: 100%; position: static; max-height: 300px; }
@@ -553,6 +556,10 @@
 <button id="toggleBtn">☰</button>
 <button id="admin-btn">⚙ admin</button>
 
+<!-- floating preview while placing -->
+<div id="floating-note"></div>
+<div id="place-hint">📌 Click anywhere in the guestbook to place your note!</div>
+
 <div class="sidebar" id="sidebar">
   <div id="visitor-count">
     visitors<span id="vc-num">...</span>
@@ -560,19 +567,19 @@
 
   <h3>Links</h3>
 
-  <a href="YOUR_INSTAGRAM_URL" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
+  <a href="https://www.instagram.com/kevvv.78/" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
     <div class="icon">📸</div>
     <div>
       <div class="label">Instagram</div>
-      <div class="sublabel">@yourusername</div>
+      <div class="sublabel">@kevvv.78</div>
     </div>
   </a>
 
-  <a href="YOUR_TWITTER_URL" target="_blank" class="nav-card" style="--platform-color: #ffffff;">
+  <a href="https://x.com/PrivateIWIK" target="_blank" class="nav-card" style="--platform-color: #ffffff;">
     <div class="icon">𝕏</div>
     <div>
       <div class="label">Twitter</div>
-      <div class="sublabel">@yourusername</div>
+      <div class="sublabel">@privateiwik</div>
     </div>
   </a>
 
@@ -592,7 +599,7 @@
     </div>
   </a>
 
-  <a href="YOUR_SPOTIFY_URL" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
+  <a href="https://open.spotify.com/user/31ytoif4v4wosh6gnmuclkhiyeau" target="_blank" class="nav-card" style="--platform-color: #1DB954;">
     <div class="icon">🎵</div>
     <div>
       <div class="label">Spotify</div>
@@ -618,19 +625,17 @@
       </div>
     </div>
 
-    <!-- GUESTBOOK -->
     <div id="guestbook">
       <div id="guestbook-header">
         <h3>Guestbook</h3>
         <button onclick="openDrawModal()">✏️ Leave a Note</button>
       </div>
-      <div id="guestbook-canvas-area" id="gb-area">
+      <div id="guestbook-canvas-area">
         <div id="notes-container"></div>
       </div>
     </div>
   </div>
 
-  <!-- MY POSSESSIONS - RIGHT -->
   <div id="possessions-panel">
     <h3>My Possessions</h3>
     <div id="possession-tracks">Loading...</div>
@@ -673,7 +678,7 @@
     <div class="draw-actions" style="margin-top:8px;">
       <button id="clear-btn" onclick="clearCanvas()">Clear</button>
       <button id="cancel-btn" onclick="closeDrawModal()">Cancel</button>
-      <button id="stick-btn" onclick="stickNote()">Stick it! 📌</button>
+      <button id="stick-btn" onclick="enterPlacingMode()">Stick it! 📌</button>
     </div>
   </div>
 </div>
@@ -926,7 +931,6 @@ async function loadNowPlaying() {
     document.getElementById("ytConnectBtn").onclick = () => { window.location.href = "/api/youtube-login"; };
     document.getElementById("ytAddBtn").onclick = async () => {
       const btn = document.getElementById("ytAddBtn");
-      const status = document.getElementById("ytStatus");
       await addToYouTube(data.title, data.artist, btn);
     };
 
@@ -934,11 +938,13 @@ async function loadNowPlaying() {
   } catch { document.getElementById("spotify-widget").innerHTML = "Error loading data"; }
 }
 
-// ============ GUESTBOOK / DRAWING ============
+// ============ DRAWING ============
 let drawColor = "#000000";
 let noteColor = "#fef08a";
 let isDrawing = false;
 let lastX = 0, lastY = 0;
+let pendingNoteData = null;
+let isPlacingMode = false;
 
 const drawCanvas = document.getElementById("draw-canvas");
 const drawCtx = drawCanvas.getContext("2d");
@@ -957,11 +963,11 @@ function closeDrawModal() {
   document.getElementById("draw-modal").classList.remove("open");
   document.getElementById("note-nickname").value = "";
   document.getElementById("note-message").value = "";
+  initCanvas();
 }
 
 function clearCanvas() { initCanvas(); }
 
-// Color swatches (brush)
 document.querySelectorAll(".color-swatch").forEach(s => {
   s.onclick = () => {
     document.querySelectorAll(".color-swatch").forEach(x => x.classList.remove("active"));
@@ -970,13 +976,11 @@ document.querySelectorAll(".color-swatch").forEach(s => {
   };
 });
 
-// Custom color
 document.getElementById("custom-color").oninput = (e) => {
   drawColor = e.target.value;
   document.querySelectorAll(".color-swatch").forEach(x => x.classList.remove("active"));
 };
 
-// Note color picker
 document.querySelectorAll(".note-color-opt").forEach(s => {
   s.onclick = () => {
     document.querySelectorAll(".note-color-opt").forEach(x => x.classList.remove("active"));
@@ -985,21 +989,14 @@ document.querySelectorAll(".note-color-opt").forEach(s => {
   };
 });
 
-// Drawing events
 function getPos(e) {
   const rect = drawCanvas.getBoundingClientRect();
   const scaleX = drawCanvas.width / rect.width;
   const scaleY = drawCanvas.height / rect.height;
   if (e.touches) {
-    return {
-      x: (e.touches[0].clientX - rect.left) * scaleX,
-      y: (e.touches[0].clientY - rect.top) * scaleY
-    };
+    return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
   }
-  return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top) * scaleY
-  };
+  return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
 }
 
 drawCanvas.addEventListener("mousedown", e => { isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
@@ -1033,39 +1030,80 @@ drawCanvas.addEventListener("touchmove", e => {
 });
 drawCanvas.addEventListener("touchend", () => isDrawing = false);
 
-async function stickNote() {
+// ============ PLACING MODE ============
+function enterPlacingMode() {
   const nickname = document.getElementById("note-nickname").value.trim();
   const message = document.getElementById("note-message").value.trim();
   if (!nickname) { alert("Please enter a nickname!"); return; }
 
   const drawing = drawCanvas.toDataURL("image/png");
-  const area = document.getElementById("guestbook-canvas-area");
-  const maxX = Math.max(100, area.offsetWidth - 180);
-  const maxY = Math.max(100, area.offsetHeight - 200);
-  const position_x = Math.random() * maxX;
-  const position_y = Math.random() * maxY;
+  pendingNoteData = { nickname, message, drawing, color: noteColor };
 
-  const btn = document.getElementById("stick-btn");
-  btn.disabled = true;
-  btn.innerText = "Sticking...";
+  closeDrawModal();
+
+  // Show floating preview
+  const floatingNote = document.getElementById("floating-note");
+  floatingNote.style.display = "flex";
+  floatingNote.style.background = noteColor;
+  floatingNote.innerHTML = `
+    <img src="${drawing}" alt="drawing">
+    ${message ? `<div class="note-message">${message}</div>` : ""}
+    <div class="note-nick">— ${nickname}</div>
+  `;
+
+  document.getElementById("place-hint").style.display = "block";
+  document.body.classList.add("placing-mode");
+  isPlacingMode = true;
+}
+
+// Move floating note with mouse
+document.addEventListener("mousemove", e => {
+  if (!isPlacingMode) return;
+  const floatingNote = document.getElementById("floating-note");
+  floatingNote.style.left = `${e.clientX + 10}px`;
+  floatingNote.style.top = `${e.clientY + 10}px`;
+});
+
+// Click to place in guestbook
+document.getElementById("guestbook-canvas-area").addEventListener("click", async e => {
+  if (!isPlacingMode || !pendingNoteData) return;
+
+  const area = document.getElementById("guestbook-canvas-area");
+  const rect = area.getBoundingClientRect();
+  const position_x = e.clientX - rect.left;
+  const position_y = e.clientY - rect.top;
+
+  // Exit placing mode
+  isPlacingMode = false;
+  document.body.classList.remove("placing-mode");
+  document.getElementById("floating-note").style.display = "none";
+  document.getElementById("place-hint").style.display = "none";
 
   try {
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname, message, drawing, position_x, position_y, color: noteColor })
+      body: JSON.stringify({ ...pendingNoteData, position_x, position_y })
     });
     const data = await res.json();
-    if (data.note) {
-      closeDrawModal();
-      renderNote(data.note);
-    }
+    if (data.note) renderNote(data.note);
   } catch { alert("Failed to save note, try again!"); }
 
-  btn.disabled = false;
-  btn.innerText = "Stick it! 📌";
-}
+  pendingNoteData = null;
+});
 
+// Press Escape to cancel placing
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && isPlacingMode) {
+    isPlacingMode = false;
+    pendingNoteData = null;
+    document.body.classList.remove("placing-mode");
+    document.getElementById("floating-note").style.display = "none";
+    document.getElementById("place-hint").style.display = "none";
+  }
+});
+
+// ============ RENDER NOTE ============
 function renderNote(note) {
   const container = document.getElementById("notes-container");
   const el = document.createElement("div");
@@ -1077,12 +1115,11 @@ function renderNote(note) {
 
   el.innerHTML = `
     <button class="admin-delete" onclick="deleteNote('${note.id}', event)">✕</button>
-    <img src="${note.drawing}" style="width:100%;border-radius:4px;" alt="drawing">
+    <img src="${note.drawing}" alt="drawing">
     ${note.message ? `<div class="note-message">${note.message}</div>` : ""}
     <div class="note-nick">— ${note.nickname}</div>
   `;
 
-  // Admin drag
   let dragging = false, startX, startY, origX, origY;
   el.addEventListener("mousedown", e => {
     if (!adminToken) return;
@@ -1096,10 +1133,8 @@ function renderNote(note) {
 
   document.addEventListener("mousemove", e => {
     if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    note.position_x = origX + dx;
-    note.position_y = origY + dy;
+    note.position_x = origX + (e.clientX - startX);
+    note.position_y = origY + (e.clientY - startY);
     el.style.left = `${note.position_x}px`;
     el.style.top = `${note.position_y}px`;
   });
@@ -1139,7 +1174,6 @@ async function loadNotes() {
   } catch {}
 }
 
-// Close overlays when clicking outside
 document.addEventListener("click", e => {
   if (!e.target.closest(".recent-track")) {
     document.querySelectorAll(".recent-track").forEach(t => t.classList.remove("show-overlay"));
