@@ -1,7 +1,4 @@
 {
   "name": "kiwi-site",
-  "version": "1.0.0",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.40.0"
-  }
+  "version": "1.0.0"
 }
