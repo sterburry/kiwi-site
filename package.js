@@ -2,6 +2,6 @@
   "name": "kiwi-site",
   "version": "1.0.0",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.40.0"
   }
 }
