@@ -181,13 +181,41 @@
     .possession-track .p-title { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .possession-track .remove-hint { font-size: 9px; opacity: 0.4; text-align: center; margin-top: 2px; }
 
-    #spotify-widget img {
+    #album-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    #album-wrap img {
       border-radius: 12px;
       width: 120px;
       height: 120px;
       object-fit: cover;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      margin-bottom: 12px;
+      display: block;
+    }
+
+    #play-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      opacity: 0;
+    }
+
+    #album-wrap:hover #play-overlay { opacity: 1; }
+    #play-overlay.visible { opacity: 1; }
+
+    #play-overlay .play-icon {
+      font-size: 36px;
+      line-height: 1;
+      user-select: none;
     }
 
     .song-title { font-size: 20px; font-weight: bold; margin-bottom: 4px; }
@@ -296,7 +324,6 @@
     #lyrics::-webkit-scrollbar { width: 4px; }
     #lyrics::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
-    /* GUESTBOOK */
     #guestbook {
       margin-top: 40px;
       position: relative;
@@ -342,7 +369,6 @@
       min-height: 500px;
     }
 
-    /* placing mode hint */
     #place-hint {
       display: none;
       position: fixed;
@@ -358,7 +384,6 @@
       pointer-events: none;
     }
 
-    /* floating preview note while placing */
     #floating-note {
       display: none;
       position: fixed;
@@ -415,7 +440,6 @@
 
     body.admin-mode .sticky-note .admin-delete { display: flex; }
 
-    /* DRAW MODAL */
     #draw-modal {
       display: none;
       position: fixed;
@@ -537,9 +561,17 @@
       border-color: #ff4444;
     }
 
-    #colorCanvas { display: none; }
+    #yt-player-wrap {
+      position: fixed;
+      bottom: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      pointer-events: none;
+    }
 
-    /* placing mode cursor */
+    #colorCanvas { display: none; }
     body.placing-mode { cursor: crosshair; }
 
     @media (max-width: 700px) {
@@ -556,15 +588,17 @@
 <button id="toggleBtn">☰</button>
 <button id="admin-btn">⚙ admin</button>
 
-<!-- floating preview while placing -->
 <div id="floating-note"></div>
 <div id="place-hint">📌 Click anywhere in the guestbook to place your note!</div>
+
+<div id="yt-player-wrap">
+  <div id="yt-player"></div>
+</div>
 
 <div class="sidebar" id="sidebar">
   <div id="visitor-count">
     visitors<span id="vc-num">...</span>
   </div>
-
   <h3>Links</h3>
 
   <a href="https://www.instagram.com/kevvv.78/" target="_blank" class="nav-card" style="--platform-color: #E1306C;">
@@ -579,7 +613,7 @@
     <div class="icon">𝕏</div>
     <div>
       <div class="label">Twitter</div>
-      <div class="sublabel">@privateiwik</div>
+      <div class="sublabel">@PrivateIWIK</div>
     </div>
   </a>
 
@@ -603,7 +637,7 @@
     <div class="icon">🎵</div>
     <div>
       <div class="label">Spotify</div>
-      <div class="sublabel">my music</div>
+      <div class="sublabel">my playlist</div>
     </div>
   </a>
 </div>
@@ -642,11 +676,9 @@
   </div>
 </div>
 
-<!-- DRAWING MODAL -->
 <div id="draw-modal">
   <div id="draw-box">
     <h3>Leave a sticky note ✨</h3>
-
     <div class="note-colors">
       <div class="note-color-opt active" style="background:#fef08a;" data-color="#fef08a"></div>
       <div class="note-color-opt" style="background:#86efac;" data-color="#86efac"></div>
@@ -655,9 +687,7 @@
       <div class="note-color-opt" style="background:#fdba74;" data-color="#fdba74"></div>
       <div class="note-color-opt" style="background:#ffffff;" data-color="#ffffff"></div>
     </div>
-
     <canvas id="draw-canvas" width="380" height="280"></canvas>
-
     <div class="draw-tools">
       <div class="color-swatch active" style="background:#000000;" data-color="#000000"></div>
       <div class="color-swatch" style="background:#ef4444;" data-color="#ef4444"></div>
@@ -670,7 +700,6 @@
       <span class="brush-label">Size</span>
       <input type="range" id="brush-size" min="1" max="20" value="4">
     </div>
-
     <div class="draw-actions">
       <input type="text" id="note-nickname" placeholder="your nickname..." maxlength="20">
       <input type="text" id="note-message" placeholder="message (optional)..." maxlength="80">
@@ -682,6 +711,8 @@
     </div>
   </div>
 </div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 // ============ SIDEBAR ============
@@ -861,9 +892,72 @@ function handleRemove(i, playlistItemId) {
     .catch(()=>{ hint.innerText="error removing"; });
 }
 
+// ============ YOUTUBE PLAYER ============
+let ytPlayer = null;
+let ytReady = false;
+let isUserPlaying = false;
+let currentVideoId = null;
+let pendingVideoId = null;
+let pendingSeek = 0;
+
+window.onYouTubeIframeAPIReady = () => {
+  ytPlayer = new YT.Player("yt-player", {
+    height: "1",
+    width: "1",
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      modestbranding: 1
+    },
+    events: {
+      onReady: () => {
+        ytReady = true;
+        if (pendingVideoId) {
+          loadAndPlayVideo(pendingVideoId, pendingSeek);
+          pendingVideoId = null;
+        }
+      },
+      onStateChange: () => { updatePlayButton(); }
+    }
+  });
+};
+
+function loadAndPlayVideo(videoId, seekSeconds) {
+  if (!ytReady || !ytPlayer) return;
+  ytPlayer.loadVideoById({ videoId, startSeconds: seekSeconds });
+  currentVideoId = videoId;
+  updatePlayButton();
+}
+
+function updatePlayButton() {
+  const icon = document.getElementById("play-icon");
+  if (!icon) return;
+  if (isUserPlaying && ytPlayer && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+    icon.innerText = "⏸";
+  } else {
+    icon.innerText = "▶";
+  }
+}
+
+// ============ FIND YOUTUBE VIDEO (server side) ============
+async function findYouTubeVideo(title, artist) {
+  try {
+    const res = await fetch(
+      `/api/youtube-search?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`
+    );
+    const data = await res.json();
+    return data.videoId || null;
+  } catch {
+    return null;
+  }
+}
+
 // ============ NOW PLAYING ============
 let progressInterval = null;
 let lastAlbumImage = null;
+let lastSongTitle = null;
 
 async function loadNowPlaying() {
   try {
@@ -881,6 +975,7 @@ async function loadNowPlaying() {
       lyricsBox.innerHTML = "";
       if (progressInterval) clearInterval(progressInterval);
       lastAlbumImage = null;
+      lastSongTitle = null;
       return;
     }
 
@@ -894,8 +989,31 @@ async function loadNowPlaying() {
     }
 
     const percent = (data.progress / data.duration) * 100;
+    const seekSeconds = Math.floor(data.progress / 1000);
+
+    // Song changed
+    if (data.title !== lastSongTitle) {
+      lastSongTitle = data.title;
+      const videoId = await findYouTubeVideo(data.title, data.artist);
+      currentVideoId = videoId;
+
+      if (isUserPlaying && videoId) {
+        if (ytReady) {
+          loadAndPlayVideo(videoId, seekSeconds);
+        } else {
+          pendingVideoId = videoId;
+          pendingSeek = seekSeconds;
+        }
+      }
+    }
+
     container.innerHTML = `
-      <img src="${data.albumImage}" alt="Album art">
+      <div id="album-wrap">
+        <img src="${data.albumImage}" alt="Album art">
+        <div id="play-overlay" class="visible">
+          <span class="play-icon" id="play-icon">${isUserPlaying ? "⏸" : "▶"}</span>
+        </div>
+      </div>
       <div class="song-title">${data.title}</div>
       <div class="song-artist">${data.artist}</div>
       <div class="progress-container">
@@ -908,6 +1026,27 @@ async function loadNowPlaying() {
         </div>
       </div>
     `;
+
+    document.getElementById("play-overlay").onclick = async () => {
+      if (!isUserPlaying) {
+        isUserPlaying = true;
+        if (currentVideoId && ytReady) {
+          loadAndPlayVideo(currentVideoId, seekSeconds);
+        }
+      } else {
+        if (ytPlayer && ytReady) {
+          const state = ytPlayer.getPlayerState();
+          if (state === YT.PlayerState.PLAYING) {
+            ytPlayer.pauseVideo();
+            isUserPlaying = false;
+          } else {
+            ytPlayer.playVideo();
+            isUserPlaying = true;
+          }
+        }
+      }
+      updatePlayButton();
+    };
 
     if (progressInterval) clearInterval(progressInterval);
     let currentMs = data.progress;
@@ -1030,7 +1169,6 @@ drawCanvas.addEventListener("touchmove", e => {
 });
 drawCanvas.addEventListener("touchend", () => isDrawing = false);
 
-// ============ PLACING MODE ============
 function enterPlacingMode() {
   const nickname = document.getElementById("note-nickname").value.trim();
   const message = document.getElementById("note-message").value.trim();
@@ -1041,7 +1179,6 @@ function enterPlacingMode() {
 
   closeDrawModal();
 
-  // Show floating preview
   const floatingNote = document.getElementById("floating-note");
   floatingNote.style.display = "flex";
   floatingNote.style.background = noteColor;
@@ -1056,7 +1193,6 @@ function enterPlacingMode() {
   isPlacingMode = true;
 }
 
-// Move floating note with mouse
 document.addEventListener("mousemove", e => {
   if (!isPlacingMode) return;
   const floatingNote = document.getElementById("floating-note");
@@ -1064,7 +1200,6 @@ document.addEventListener("mousemove", e => {
   floatingNote.style.top = `${e.clientY + 10}px`;
 });
 
-// Click to place in guestbook
 document.getElementById("guestbook-canvas-area").addEventListener("click", async e => {
   if (!isPlacingMode || !pendingNoteData) return;
 
@@ -1073,7 +1208,6 @@ document.getElementById("guestbook-canvas-area").addEventListener("click", async
   const position_x = e.clientX - rect.left;
   const position_y = e.clientY - rect.top;
 
-  // Exit placing mode
   isPlacingMode = false;
   document.body.classList.remove("placing-mode");
   document.getElementById("floating-note").style.display = "none";
@@ -1092,7 +1226,6 @@ document.getElementById("guestbook-canvas-area").addEventListener("click", async
   pendingNoteData = null;
 });
 
-// Press Escape to cancel placing
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && isPlacingMode) {
     isPlacingMode = false;
@@ -1103,7 +1236,6 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// ============ RENDER NOTE ============
 function renderNote(note) {
   const container = document.getElementById("notes-container");
   const el = document.createElement("div");
